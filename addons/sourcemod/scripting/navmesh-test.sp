@@ -136,7 +136,7 @@ public Action Command_GetAdjacentNavAreas(int client, int args)
 		while (!hAdjacentAreas.Empty)
 		{
 			CNavArea area = INVALID_NAV_AREA;
-			hAdjacentAreas.Pop(view_as<int>area);
+			PopStackCell(hAdjacentAreas, view_as<int>area);
 			PrintToChat(client, "Found adjacent area (ID: %d) for area ID %d", area.ID, startArea.ID);
 		}
 		
@@ -189,7 +189,7 @@ public Action Command_NavMeshCollectSurroundingAreas(int client, int args)
 		while (!hNearAreas.Empty)
 		{
 			int iSomething;
-			hNearAreas.Pop(iSomething);
+			PopStackCell(hNearAreas, iSomething);
 			areaCount++;
 		}
 		
@@ -258,7 +258,7 @@ public Action Command_GetNavAreasOnGrid(int client, int args)
 		while (!hAreas.Empty)
 		{
 			CNavArea area = INVALID_NAV_AREA;
-			hAreas.Pop(view_as<int>area);
+			PopStackCell(hAreas, view_as<int>area);
 			ReplyToCommand(client, "%d", area.Index);
 		}
 	}

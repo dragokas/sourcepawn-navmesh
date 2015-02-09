@@ -142,6 +142,7 @@ enum
 	NavMeshHidingSpot_Y,
 	NavMeshHidingSpot_Z,
 	NavMeshHidingSpot_Flags,
+	NavMeshHidingSpot_AreaIndex,
 	NavMeshHidingSpot_MaxStats
 };
 
@@ -269,6 +270,8 @@ native bool NavMeshArea_GetCenter(int areaIndex, float buffer[3]);
 native void NavMeshArea_GetAdjacentList(ArrayStack buffer, int areaIndex, int dir);
 
 native void NavMeshArea_GetLadderList(ArrayStack buffer, int areaIndex, int dir);
+
+native void NavMeshArea_GetHidingSpots(ArrayStack buffer, int areaIndex);
 
 native void NavMeshArea_GetClosestPointOnArea(int areaIndex, const float pos[3], float closePos[3]);
 
@@ -480,6 +483,11 @@ methodmap CNavArea
 		NavMeshArea_GetLadderList( buffer, this.Index, dir );
 	}
 	
+	public void GetHidingSpots( ArrayStack buffer )
+	{
+		NavMeshArea_GetHidingSpots( buffer, this.Index );
+	}
+	
 	public void ComputePortal( CNavArea to, int dir, float center[3], float &halfWidth )
 	{
 		NavMeshArea_ComputePortal(this.Index, to.Index, dir, center, halfWidth);
@@ -498,6 +506,77 @@ methodmap CNavArea
 	public float GetLightIntensity( const float point[3] )
 	{
 		return NavMeshArea_GetLightIntensity(this.Index, point);
+	}
+}
+
+// HidingSpot
+
+enum
+{
+	NAV_HIDING_SPOT_IN_COVER = 0x01,
+	NAV_HIDING_SPOT_GOOD_SNIPER_SPOT = 0x02,
+	NAV_HIDING_SPOT_IDEAL_SNIPER_SPOT = 0x04,
+	NAV_HIDING_SPOT_EXPOSED = 0x08
+}
+
+native int NavHidingSpot_GetID(int hidingSpotIndex);
+
+native int NavHidingSpot_GetFlags(int hidingSpotIndex);
+
+native void NavHidingSpot_GetPosition(int hidingSpotIndex, float buffer[3]);
+
+native CNavArea NavHidingSpot_GetArea(int hidingSpotIndex);
+
+methodmap HidingSpot
+{
+	public HidingSpot( int index )
+	{
+		return view_as<HidingSpot>index;
+	}
+	
+	property int Index
+	{
+		public get() { return view_as<int>this; }
+	}
+	
+	property int ID
+	{
+		public get() { return NavHidingSpot_GetID( this.Index ); }
+	}
+	
+	property int Flags
+	{
+		public get() { return NavHidingSpot_GetFlags( this.Index ); }
+	}
+	
+	public void GetPosition( float buffer[3] )
+	{
+		NavHidingSpot_GetPosition( this.Index, buffer );
+	}
+	
+	public bool HasGoodCover()
+	{
+		return this.Flags & NAV_HIDING_SPOT_IN_COVER ? true : false;
+	}
+	
+	public bool IsGoodSniperSpot()
+	{
+		return this.Flags & NAV_HIDING_SPOT_GOOD_SNIPER_SPOT ? true : false;
+	}
+	
+	public bool IsIdealSniperSpot()
+	{
+		return this.Flags & NAV_HIDING_SPOT_IDEAL_SNIPER_SPOT ? true : false;
+	}
+	
+	public bool IsExposed()
+	{
+		return this.Flags & NAV_HIDING_SPOT_EXPOSED ? true : false;
+	}
+	
+	public CNavArea GetArea()
+	{
+		return NavHidingSpot_GetArea(this.Index);
 	}
 }
 

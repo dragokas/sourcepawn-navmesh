@@ -96,6 +96,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMeshArea_GetCenter", Native_NavMeshAreaGetCenter);
 	CreateNative("NavMeshArea_GetAdjacentList", Native_NavMeshAreaGetAdjacentList);
 	CreateNative("NavMeshArea_GetLadderList", Native_NavMeshAreaGetLadderList);
+	CreateNative("NavMeshArea_GetHidingSpots", Native_NavMeshAreaGetHidingSpots);
 	CreateNative("NavMeshArea_GetClosestPointOnArea", Native_NavMeshAreaGetClosestPointOnArea);
 	CreateNative("NavMeshArea_GetTotalCost", Native_NavMeshAreaGetTotalCost);
 	CreateNative("NavMeshArea_GetParent", Native_NavMeshAreaGetParent);
@@ -119,6 +120,11 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMeshArea_ComputeClosestPointInPortal", Native_NavMeshAreaComputeClosestPointInPortal);
 	CreateNative("NavMeshArea_ComputeDirection", Native_NavMeshAreaComputeDirection);
 	CreateNative("NavMeshArea_GetLightIntensity", Native_NavMeshAreaGetLightIntensity);
+	
+	CreateNative("NavHidingSpot_GetID", Native_NavHidingSpotGetID);
+	CreateNative("NavHidingSpot_GetFlags", Native_NavHidingSpotGetFlags);
+	CreateNative("NavHidingSpot_GetPosition", Native_NavHidingSpotGetPosition);
+	CreateNative("NavHidingSpot_GetArea", Native_NavHidingSpotGetArea);
 	
 	CreateNative("NavMeshLadder_GetLength", Native_NavMeshLadderGetLength);
 }
@@ -1141,6 +1147,7 @@ bool NavMeshLoad(const char[] sMapName)
 					g_hNavMeshAreaHidingSpots.Set(iIndex, flHidingSpotY, NavMeshHidingSpot_Y);
 					g_hNavMeshAreaHidingSpots.Set(iIndex, flHidingSpotZ, NavMeshHidingSpot_Z);
 					g_hNavMeshAreaHidingSpots.Set(iIndex, iHidingSpotFlags, NavMeshHidingSpot_Flags);
+					g_hNavMeshAreaHidingSpots.Set(iIndex, iAreaIndex, NavMeshHidingSpot_AreaIndex);
 					
 					iGlobalHidingSpotsStartIndex++;
 					
@@ -2073,6 +2080,21 @@ stock ArrayStack NavMeshAreaGetLadderList(int iAreaIndex, int iLadderDir)
 	return hStack;
 }
 
+stock ArrayStack NavMeshAreaGetHidingSpots(int iAreaIndex)
+{
+	if (!g_bNavMeshBuilt) return null;
+	
+	int startIndex = g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_HidingSpotsStartIndex);
+	if (startIndex == -1) return null;
+	
+	int endIndex = g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_HidingSpotsEndIndex);
+	
+	ArrayStack hStack = new ArrayStack();
+	for (int i = startIndex; i <= endIndex; i++) hStack.Push(i);
+	
+	return hStack;
+}
+
 stock int NavMeshAreaGetTotalCost(int iAreaIndex)
 {
 	if (!g_bNavMeshBuilt) return 0;
@@ -2917,8 +2939,26 @@ public int Native_NavMeshAreaGetAdjacentList(Handle plugin, int numParams)
 public int Native_NavMeshAreaGetLadderList(Handle plugin, int numParams)
 {
 	ArrayStack hTarget = view_as<ArrayStack>GetNativeCell(1);
-
 	ArrayStack hDummy = NavMeshAreaGetLadderList(GetNativeCell(2), GetNativeCell(3));
+	
+	if (hDummy != null)
+	{
+		while (!IsStackEmpty(hDummy))
+		{
+			int iAreaIndex = -1;
+			PopStackCell(hDummy, iAreaIndex);
+			PushStackCell(hTarget, iAreaIndex);
+		}
+		
+		delete hDummy;
+	}
+}
+
+public int Native_NavMeshAreaGetHidingSpots(Handle plugin, int numParams)
+{
+	ArrayStack hTarget = view_as<ArrayStack>GetNativeCell(1);
+	ArrayStack hDummy = NavMeshAreaGetHidingSpots(GetNativeCell(2));
+	
 	if (hDummy != null)
 	{
 		while (!IsStackEmpty(hDummy))
@@ -3098,6 +3138,35 @@ public int Native_NavMeshAreaGetLightIntensity(Handle plugin, int numParams)
 	GetNativeArray(2, flPos, 3);
 	
 	return view_as<int>NavMeshAreaGetLightIntensity(GetNativeCell(1), flPos);
+}
+
+public int Native_NavHidingSpotGetID(Handle plugin, int numParams)
+{
+	return g_hNavMeshAreaHidingSpots.Get(GetNativeCell(1), NavMeshHidingSpot_ID);
+}
+
+public int Native_NavHidingSpotGetFlags(Handle plugin, int numParams)
+{
+	return g_hNavMeshAreaHidingSpots.Get(GetNativeCell(1), NavMeshHidingSpot_Flags);
+}
+
+public int Native_NavHidingSpotGetPosition(Handle plugin, int numParams)
+{
+	float buffer[3];
+	GetNativeArray(2, buffer, 3);
+	
+	int hidingSpotIndex = GetNativeCell(1);
+	
+	buffer[0] = view_as<float>g_hNavMeshAreaHidingSpots.Get(hidingSpotIndex, NavMeshHidingSpot_X);
+	buffer[1] = view_as<float>g_hNavMeshAreaHidingSpots.Get(hidingSpotIndex, NavMeshHidingSpot_Y);
+	buffer[2] = view_as<float>g_hNavMeshAreaHidingSpots.Get(hidingSpotIndex, NavMeshHidingSpot_Z);
+	
+	SetNativeArray(2, buffer, 3);
+}
+
+public int Native_NavHidingSpotGetArea(Handle plugin, int numParams)
+{
+	return g_hNavMeshAreaHidingSpots.Get(GetNativeCell(1), NavMeshHidingSpot_AreaIndex);
 }
 
 public int Native_NavMeshLadderGetLength(Handle plugin, int numParams)
