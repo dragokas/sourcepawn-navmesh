@@ -47,8 +47,8 @@ ArrayList g_hNavMeshGridLists;
 float g_flNavMeshGridCellSize = 300.0;
 float g_flNavMeshMinX;
 float g_flNavMeshMinY;
-float g_iNavMeshGridSizeX;
-float g_iNavMeshGridSizeY;
+int g_iNavMeshGridSizeX;
+int g_iNavMeshGridSizeY;
 
 
 bool g_bNavMeshBuilt = false;
@@ -90,6 +90,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMeshArea_GetMasterMarker", Native_NavMeshAreaGetMasterMarker);
 	CreateNative("NavMeshArea_ChangeMasterMarker", Native_NavMeshAreaChangeMasterMarker);
 	
+	CreateNative("NavMeshArea_GetID", Native_NavMeshAreaGetID);
 	CreateNative("NavMeshArea_GetFlags", Native_NavMeshAreaGetFlags);
 	CreateNative("NavMeshArea_GetCenter", Native_NavMeshAreaGetCenter);
 	CreateNative("NavMeshArea_GetAdjacentList", Native_NavMeshAreaGetAdjacentList);
@@ -301,8 +302,8 @@ bool NavMeshBuildPath(int iStartAreaIndex,
 	int iGoalAreaIndex,
 	const float flGoalPos[3],
 	Handle hCostFunctionPlugin,
-	function iCostFunction,
-	any iCostData=null,
+	NavPathCostFunctor iCostFunction,
+	any iCostData=0,
 	int &iClosestAreaIndex=-1,
 	float flMaxPathLength=0.0)
 {
@@ -1628,8 +1629,9 @@ void NavMeshGridFinalize()
 
 // The array indexes should be assigned afterwards using NavMeshGridFinalize().
 
-public int SortNavMeshGridLists(int index1, int index2, ArrayList array, Handle hndl)
+public int SortNavMeshGridLists(int index1, int index2, Handle ar, Handle hndl)
 {
+	ArrayList array = view_as<ArrayList>ar;
 	int iGridIndex1 = array.Get(index1, NavMeshGridList_Owner);
 	int iGridIndex2 = array.Get(index2, NavMeshGridList_Owner);
 	
@@ -1955,6 +1957,13 @@ stock float fsel(float a, float b, float c)
 	return a >= 0.0 ? b : c;
 }
 
+stock int NavMeshAreaGetID(int iAreaIndex)
+{
+	if (!g_bNavMeshBuilt) return -1;
+	
+	return g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_ID);
+}
+
 stock int NavMeshAreaGetFlags(int iAreaIndex)
 {
 	if (!g_bNavMeshBuilt) return 0;
@@ -2233,11 +2242,11 @@ stock bool NavMeshAreaComputePortal(int iAreaIndex, int iAreaToIndex, int iNavDi
 {
 	if (!g_bNavMeshBuilt) return false;
 	
-	float flAreaExtentLow[3], Float:flAreaExtentHigh[3];
+	float flAreaExtentLow[3]; float flAreaExtentHigh[3];
 	NavMeshAreaGetExtentLow(iAreaIndex, flAreaExtentLow);
 	NavMeshAreaGetExtentHigh(iAreaIndex, flAreaExtentHigh);
 	
-	float flAreaToExtentLow[3], Float:flAreaToExtentHigh[3];
+	float flAreaToExtentLow[3]; float flAreaToExtentHigh[3];
 	NavMeshAreaGetExtentLow(iAreaToIndex, flAreaToExtentLow);
 	NavMeshAreaGetExtentHigh(iAreaToIndex, flAreaToExtentHigh);
 	
@@ -2311,11 +2320,11 @@ stock bool NavMeshAreaComputeClosestPointInPortal(int iAreaIndex, int iAreaToInd
 	
 	static float flMargin = 25.0; // GenerationStepSize = 25.0;
 	
-	float flAreaExtentLow[3], Float:flAreaExtentHigh[3];
+	float flAreaExtentLow[3]; float flAreaExtentHigh[3];
 	NavMeshAreaGetExtentLow(iAreaIndex, flAreaExtentLow);
 	NavMeshAreaGetExtentHigh(iAreaIndex, flAreaExtentHigh);
 	
-	float flAreaToExtentLow[3], Float:flAreaToExtentHigh[3];
+	float flAreaToExtentLow[3]; float flAreaToExtentHigh[3];
 	NavMeshAreaGetExtentLow(iAreaToIndex, flAreaToExtentLow);
 	NavMeshAreaGetExtentHigh(iAreaToIndex, flAreaToExtentHigh);
 	
@@ -2403,7 +2412,7 @@ stock int NavMeshAreaComputeDirection(int iAreaIndex, const float flPos[3])
 {
 	if (!g_bNavMeshBuilt) return NAV_DIR_COUNT;
 	
-	float flExtentLow[3], Float:flExtentHigh[3];
+	float flExtentLow[3]; float flExtentHigh[3];
 	NavMeshAreaGetExtentLow(iAreaIndex, flExtentLow);
 	NavMeshAreaGetExtentHigh(iAreaIndex, flExtentHigh);
 	
@@ -2454,7 +2463,7 @@ stock float NavMeshAreaGetLightIntensity(int iAreaIndex, const float flPos[3])
 {
 	if (!g_bNavMeshBuilt) return 0.0;
 	
-	float flExtentLow[3], Float:flExtentHigh[3];
+	float flExtentLow[3]; float flExtentHigh[3];
 	NavMeshAreaGetExtentLow(iAreaIndex, flExtentLow);
 	NavMeshAreaGetExtentHigh(iAreaIndex, flExtentHigh);
 
@@ -2554,7 +2563,7 @@ stock bool NavMeshGetGroundHeight(const float flPos[3], float &flHeight, float f
 {
 	static float flMaxOffset = 100.0;
 	
-	float flTo[3], Float:flFrom[3];
+	float flTo[3]; float flFrom[3];
 	flTo[0] = flPos[0];
 	flTo[1] = flPos[1];
 	flTo[2] = flPos[2] - 10000.0;
@@ -2663,7 +2672,7 @@ public int Native_NavMeshGetPlaces(Handle plugin, int numParams)
 	if (!g_bNavMeshBuilt)
 	{
 		LogError("Could not retrieve place list because the nav mesh doesn't exist!");
-		return view_as<int>null;
+		return 0;
 	}
 	
 	return view_as<int>g_hNavMeshPlaces;
@@ -2674,7 +2683,7 @@ public int Native_NavMeshGetAreas(Handle plugin, int numParams)
 	if (!g_bNavMeshBuilt)
 	{
 		LogError("Could not retrieve area list because the nav mesh doesn't exist!");
-		return view_as<int>null;
+		return 0;
 	}
 	
 	return view_as<int>g_hNavMeshAreas;
@@ -2685,7 +2694,7 @@ public int Native_NavMeshGetLadders(Handle plugin, int numParams)
 	if (!g_bNavMeshBuilt)
 	{
 		LogError("Could not retrieve ladder list because the nav mesh doesn't exist!");
-		return view_as<int>null;
+		return 0;
 	}
 	
 	return view_as<int>g_hNavMeshLadders;
@@ -2694,7 +2703,7 @@ public int Native_NavMeshGetLadders(Handle plugin, int numParams)
 public int Native_NavMeshCollectSurroundingAreas(Handle plugin, int numParams)
 {
 	ArrayStack hTarget = view_as<ArrayStack>GetNativeCell(1);
-	ArrayStack hDummy = NavMeshCollectSurroundingAreas(GetNativeCell(2), view_as<float>GetNativeCell(3), view_as<float>GetNativeCell(4), view_as<float>GetNativeCell(5));
+	ArrayStack hDummy = NavMeshCollectSurroundingAreas(view_as<int>GetNativeCell(2), view_as<float>GetNativeCell(3), view_as<float>GetNativeCell(4), view_as<float>GetNativeCell(5));
 	
 	if (hDummy != null)
 	{
@@ -2714,13 +2723,13 @@ public int Native_NavMeshBuildPath(Handle plugin, int numParams)
 	float flGoalPos[3];
 	GetNativeArray(3, flGoalPos, 3);
 	
-	int iClosestIndex = GetNativeCellRef(6);
+	int iClosestIndex = view_as<int>GetNativeCellRef(6);
 	
-	bool bResult = NavMeshBuildPath(GetNativeCell(1), 
-		GetNativeCell(2), 
+	bool bResult = NavMeshBuildPath(view_as<int>GetNativeCell(1), 
+		view_as<int>GetNativeCell(2), 
 		flGoalPos,
 		plugin,
-		GetNativeFunction(4),
+		view_as<NavPathCostFunctor>GetNativeFunction(4),
 		GetNativeCell(5),
 		iClosestIndex,
 		view_as<float>GetNativeCell(7));
@@ -2785,18 +2794,17 @@ public int Native_NavMeshGetGridSizeY(Handle plugin, int numParams)
 
 public int Native_NavMeshAreaGetClosestPointOnArea(Handle plugin, int numParams)
 {
-	float flPos[3], Float:flClose[3];
+	float flPos[3]; float flClose[3];
 	GetNativeArray(2, flPos, 3);
 	NavMeshAreaGetClosestPointOnArea(GetNativeCell(1), flPos, flClose);
 	SetNativeArray(3, flClose, 3);
 }
 
-//stock bool:NavMeshGetGroundHeight(const Float:flPos[3], &Float:flHeight, Float:flNormal[3])
 public int Native_NavMeshGetGroundHeight(Handle plugin, int numParams)
 {
-	float flPos[3], Float:flNormal[3];
+	float flPos[3]; float flNormal[3];
 	GetNativeArray(1, flPos, 3);
-	float flHeight = Float:GetNativeCellRef(2);
+	float flHeight = view_as<float>GetNativeCellRef(2);
 	bool bResult = NavMeshGetGroundHeight(flPos, flHeight, flNormal);
 	SetNativeCellRef(2, flHeight);
 	SetNativeArray(3, flNormal, 3);
@@ -2811,6 +2819,11 @@ public int Native_NavMeshAreaGetMasterMarker(Handle plugin, int numParams)
 public int Native_NavMeshAreaChangeMasterMarker(Handle plugin, int numParams)
 {
 	g_iNavMeshAreaMasterMarker++;
+}
+
+public int Native_NavMeshAreaGetID(Handle plugin, int numParams)
+{
+	return NavMeshAreaGetID(GetNativeCell(1));
 }
 
 public int Native_NavMeshAreaGetFlags(Handle plugin, int numParams)
@@ -2925,7 +2938,7 @@ public int Native_NavMeshAreaIsOverlappingPoint(Handle plugin, int numParams)
 	float flPos[3];
 	GetNativeArray(2, flPos, 3);
 	
-	return NavMeshAreaIsOverlappingPoint(GetNativeCell(1), flPos, Float:GetNativeCell(3));
+	return NavMeshAreaIsOverlappingPoint(GetNativeCell(1), flPos, view_as<float>GetNativeCell(3));
 }
 
 public int Native_NavMeshAreaIsOverlappingArea(Handle plugin, int numParams)
@@ -2953,7 +2966,7 @@ public int Native_NavMeshAreaGetZ(Handle plugin, int numParams)
 
 public int Native_NavMeshAreaGetZFromXAndY(Handle plugin, int numParams)
 {
-	return view_as<int>NavMeshAreaGetZFromXAndY(GetNativeCell(1), Float:GetNativeCell(2), Float:GetNativeCell(3));
+	return view_as<int>NavMeshAreaGetZFromXAndY(GetNativeCell(1), view_as<float>GetNativeCell(2), view_as<float>GetNativeCell(3));
 }
 
 public int Native_NavMeshAreaContains(Handle plugin, int numParams)

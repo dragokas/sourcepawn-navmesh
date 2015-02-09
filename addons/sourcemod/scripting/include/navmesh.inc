@@ -211,6 +211,10 @@ enum
 	NavMeshGridList_MaxStats
 };
 
+const CNavArea INVALID_NAV_AREA = view_as<CNavArea>-1;
+
+typedef NavPathCostFunctor = function int(CNavArea area, CNavArea from, int ladderIndex, any data);
+
 
 native bool NavMesh_Exists();
 
@@ -231,21 +235,19 @@ native ArrayList NavMesh_GetAreas();
 native ArrayList NavMesh_GetLadders();
 
 
-typedef NavPathCostFunctor = function int(int areaIndex, int fromAreaIndex, int ladderIndex, any data);
+native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, CNavArea startArea, float travelDistLimit=1500.0, float maxStepUpLimit=StepHeight, float maxDropDownLimit=100.0);
 
-native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, int iStartAreaIndex, float flTravelDistanceLimit=1500.0, float flMaxStepUpLimit=StepHeight, float flMaxDropDownLimit=100.0);
-
-native bool NavMesh_BuildPath(int iStartAreaIndex, int iGoalAreaIndex, const float flGoalPos[3], NavPathCostFunctor iCostFunctor, any iCostData=0, int &iClosestAreaIndex=-1, float flMaxPathLength=0.0);
+native bool NavMesh_BuildPath(CNavArea startArea, CNavArea goalArea, const float goalPos[3], NavPathCostFunctor costFunctor, any costData=0, CNavArea &closestArea=INVALID_NAV_AREA, float maxPathLength=0.0);
 
 
-native int NavMesh_GetArea(const float flPos[3], float flBeneathLimit=120.0);
+native CNavArea NavMesh_GetArea(const float pos[3], float beneathLimit=120.0);
 
-native int NavMesh_GetNearestArea(const float flPos[3], bool bAnyZ=false, float flMaxDist=10000.0, bool bCheckLOS=false, bool bCheckGround=true, int iTeam=-2);
+native CNavArea NavMesh_GetNearestArea(const float pos[3], bool anyZ=false, float maxDist=10000.0, bool checkLOS=false, bool checkGround=true, int team=-2);
 
 
-native int NavMesh_WorldToGridX(float flWX);
+native int NavMesh_WorldToGridX(float wx);
 
-native int NavMesh_WorldToGridY(float flWY);
+native int NavMesh_WorldToGridY(float wy);
 
 native void NavMesh_GetAreasOnGrid(ArrayStack hStack, int x, int y);
 
@@ -254,56 +256,59 @@ native int NavMesh_GetGridSizeX();
 native int NavMesh_GetGridSizeY();
 
 
-native bool NavMesh_GetGroundHeight(const float flPos[3], float &flHeight=-1.0, float flNormal[3]=NULL_VECTOR);
+native bool NavMesh_GetGroundHeight(const float pos[3], float &height=-1.0, float normal[3]=NULL_VECTOR);
 
 
-native int NavMeshArea_GetFlags(int iAreaIndex);
+native int NavMeshArea_GetID(int areaIndex);
 
-native bool NavMeshArea_GetCenter(int iAreaIndex, float flBuffer[3]);
+native int NavMeshArea_GetFlags(int areaIndex);
 
-native void NavMeshArea_GetAdjacentList(ArrayStack hStack, int iAreaIndex, int iDirection);
+native bool NavMeshArea_GetCenter(int areaIndex, float flBuffer[3]);
 
-native void NavMeshArea_GetLadderList(ArrayStack hStack, int iAreaIndex, int iLadderDirection);
+native void NavMeshArea_GetAdjacentList(ArrayStack hStack, int areaIndex, int dir);
 
-native void NavMeshArea_GetClosestPointOnArea(int iAreaIndex, const float flPos[3], float flClose[3]);
+native void NavMeshArea_GetLadderList(ArrayStack hStack, int areaIndex, int dir);
 
-native int NavMeshArea_GetTotalCost(int iAreaIndex);
+native void NavMeshArea_GetClosestPointOnArea(int areaIndex, const float pos[3], float closePos[3]);
 
-native int NavMeshArea_GetCostSoFar(int iAreaIndex);
+native int NavMeshArea_GetTotalCost(int areaIndex);
 
-native int NavMeshArea_GetParent(int iAreaIndex);
+native int NavMeshArea_GetCostSoFar(int areaIndex);
 
-native int NavMeshArea_GetParentHow(int iAreaIndex);
+native int NavMeshArea_GetParent(int areaIndex);
 
-native void NavMeshArea_SetParent(int iAreaIndex, int iParentAreaID);
+native int NavMeshArea_GetParentHow(int areaIndex);
 
-native void NavMeshArea_SetParentHow(int iAreaIndex, int iParentHow);
+native void NavMeshArea_SetParent(int areaIndex, int parentAreaIndex);
 
-native bool NavMeshArea_GetExtentLow(int iAreaIndex, float flBuffer[3]);
+native void NavMeshArea_SetParentHow(int areaIndex, int parentHow);
 
-native bool NavMeshArea_GetExtentHigh(int iAreaIndex, float flBuffer[3]);
+native bool NavMeshArea_GetExtentLow(int areaIndex, float buffer[3]);
 
-native bool NavMeshArea_IsOverlappingPoint(int iAreaIndex, const float flPos[3], float flTolerance);
+native bool NavMeshArea_GetExtentHigh(int areaIndex, float buffer[3]);
 
-native bool NavMeshArea_IsOverlappingArea(int iAreaIndex, int iTargetAreaIndex);
+native bool NavMeshArea_IsOverlappingPoint(int areaIndex, const float pos[3], float tolerance);
 
-native float NavMeshArea_GetNECornerZ(int iAreaIndex);
+native bool NavMeshArea_IsOverlappingArea(int areaIndex, int targetAreaIndex);
 
-native float NavMeshArea_GetSWCornerZ(int iAreaIndex);
+native float NavMeshArea_GetNECornerZ(int areaIndex);
 
-native float NavMeshArea_GetZ(int iAreaIndex, const float flPos[3]);
+native float NavMeshArea_GetSWCornerZ(int areaIndex);
 
-native float NavMeshArea_GetZFromXAndY(int iAreaIndex, Float:flX, Float:flY);
+native float NavMeshArea_GetZ(int areaIndex, const float pos[3]);
 
-native bool NavMeshArea_Contains(int iAreaIndex, const float flPos[3]);
+native float NavMeshArea_GetZFromXAndY(int areaIndex, Float:x, Float:y);
 
-native bool NavMeshArea_ComputePortal(int iAreaIndex, int iAreaToIndex, int iNavDirection, float flCenter[3], float &flHalfWidth);
+native bool NavMeshArea_Contains(int areaIndex, const float pos[3]);
 
-native bool NavMeshArea_ComputeClosestPointInPortal(int iAreaIndex, int iAreaToIndex, int iNavDirection, const float flFromPos[3], float flClosestPos[3]);
+native bool NavMeshArea_ComputePortal(int areaIndex, int areaToIndex, int dir, float center[3], float &halfWidth);
 
-native int NavMeshArea_ComputeDirection(int iAreaIndex, const float flPos[3]);
+native bool NavMeshArea_ComputeClosestPointInPortal(int areaIndex, int areaToIndex, int dir, const float fromPos[3], float closePos[3]);
 
-native float NavMeshArea_GetLightIntensity(int iAreaIndex, const float flPos[3]);
+native int NavMeshArea_ComputeDirection(int areaIndex, const float pos[3]);
+
+native float NavMeshArea_GetLightIntensity(int areaIndex, const float pos[3]);
+
 
 methodmap CNavArea
 {
@@ -312,9 +317,41 @@ methodmap CNavArea
 		public get() { return view_as<int>this; }
 	}
 	
+	property int ID
+	{
+		public get() { return NavMeshArea_GetID(this.Index); }
+	}
+	
 	property int AttributeFlags
 	{
 		public get() { return NavMeshArea_GetFlags(this.Index); }
+	}
+	
+	property CNavArea Parent
+	{
+		public get() { return view_as<CNavArea>NavMeshArea_GetParent(this.Index); }
+		public set( CNavArea area ) { NavMeshArea_SetParent(this.Index, area.Index); }
+	}
+	
+	property int ParentHow
+	{
+		public get() { return NavMeshArea_GetParentHow(this.Index); }
+		public set( int how ) { NavMeshArea_SetParentHow(this.Index, how); }
+	}
+	
+	property int TotalCost
+	{
+		public get() { return NavMeshArea_GetTotalCost(this.Index); }
+	}
+	
+	property int CostSoFar
+	{
+		public get() { return NavMeshArea_GetCostSoFar(this.Index); }
+	}
+	
+	public CNavArea( int index )
+	{
+		return view_as<CNavArea>index;
 	}
 	
 	public bool GetCenter( float buffer[3] )
@@ -337,19 +374,54 @@ methodmap CNavArea
 		return NavMeshArea_GetZ(this.Index, point);
 	}
 	
-	public float GetZ( float x, float y )
+	public float GetZFromXAndY( float x, float y )
 	{
 		return NavMeshArea_GetZFromXAndY(this.Index, x, y);
 	}
 	
-	public bool IsOverlapping( const float point[3], float tolerance=0.0 )
+	public bool IsOverlappingPoint( const float point[3], float tolerance=0.0 )
 	{
 		return NavMeshArea_IsOverlappingPoint(this.Index, point, tolerance);
 	}
 	
-	public bool IsOverlapping( CNavArea area )
+	public bool IsOverlappingArea( CNavArea area )
 	{
 		return NavMeshArea_IsOverlappingArea(this.Index, area.Index);
+	}
+	
+	public bool Contains( const float point[3] )
+	{
+		return NavMeshArea_Contains(this.Index, point);
+	}
+	
+	public void GetClosestPointOnArea( const float pos[3], float buffer[3] )
+	{
+		NavMeshArea_GetClosestPointOnArea(this.Index, pos, buffer);
+	}
+	
+	public void GetAdjacentAreas( int dir, ArrayStack buffer )
+	{
+		NavMeshArea_GetAdjacentList( buffer, this.Index, dir );
+	}
+	
+	public void GetLadders( int dir, ArrayStack buffer )
+	{
+		NavMeshArea_GetLadderList( buffer, this.Index, dir );
+	}
+	
+	public void ComputePortal( CNavArea to, int dir, float center[3], float &halfWidth )
+	{
+		NavMeshArea_ComputePortal(this.Index, to.Index, dir, center, halfWidth);
+	}
+	
+	public void ComputeClosestPointInPortal( CNavArea to, int dir, const float fromPos[3], float closePos[3] )
+	{
+		NavMeshArea_ComputeClosestPointInPortal(this.Index, to.Index, dir, fromPos, closePos);
+	}
+	
+	public int ComputeDirection( const float point[3] )
+	{
+		return NavMeshArea_ComputeDirection(this.Index, point);
 	}
 	
 	public float GetLightIntensity( const float point[3] )
@@ -362,35 +434,32 @@ native float NavMeshLadder_GetLength(int iLadderID);
 
 
 // Shortest-path cost function for NavMesh_BuildPath.
-public int NavMeshShortestPathCost(int iAreaIndex, int iFromAreaIndex, int iLadderIndex, any data)
+public int NavMeshShortestPathCost(CNavArea area, CNavArea from, int ladderIndex, any data)
 {
-	if (iFromAreaIndex == -1)
+	if (from == INVALID_NAV_AREA)
 	{
 		return 0;
 	}
 	else
 	{
-		new iDist;
-		
-		if (iLadderIndex != -1)
+		int iDist = 0;
+		if (ladderIndex != -1)
 		{
-			iDist = RoundFloat(NavMeshLadder_GetLength(iLadderIndex));
+			iDist = RoundFloat(NavMeshLadder_GetLength(ladderIndex));
 		}
 		else
 		{
-			decl Float:flAreaCenter[3], Float:flFromAreaCenter[3];
-			NavMeshArea_GetCenter(iAreaIndex, flAreaCenter);
-			NavMeshArea_GetCenter(iFromAreaIndex, flFromAreaCenter);
+			float flAreaCenter[3]; float flFromAreaCenter[3];
+			area.GetCenter(flAreaCenter);
+			from.GetCenter(flFromAreaCenter);
 			
 			iDist = RoundFloat(GetVectorDistance(flAreaCenter, flFromAreaCenter));
 		}
 		
-		new iCost = iDist + NavMeshArea_GetCostSoFar(iFromAreaIndex);
-		
-		new iAreaFlags = NavMeshArea_GetFlags(iAreaIndex);
+		int iCost = iDist + from.CostSoFar;
+		int iAreaFlags = area.AttributeFlags;
 		if (iAreaFlags & NAV_MESH_CROUCH) iCost += 20;
 		if (iAreaFlags & NAV_MESH_JUMP) iCost += (5 * iDist);
-		
 		return iCost;
 	}
 }
@@ -511,4 +580,4 @@ public SharedPlugin __pl_navmesh =
 #else
 	required = 0,
 #endif
-};};
+};
