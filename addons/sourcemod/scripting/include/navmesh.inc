@@ -213,6 +213,7 @@ enum
 };
 
 const CNavArea INVALID_NAV_AREA = view_as<CNavArea>-1;
+const HidingSpot INVALID_NAV_HIDING_SPOT = view_as<CNavArea>-1;
 
 typedef NavPathCostFunctor = function int(CNavArea area, CNavArea from, int ladderIndex, any data);
 
@@ -236,16 +237,6 @@ native ArrayList NavMesh_GetAreas();
 
 native ArrayList NavMesh_GetLadders();
 
-native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, CNavArea startArea, float travelDistLimit=1500.0, float maxStepUpLimit=StepHeight, float maxDropDownLimit=100.0);
-
-native bool NavMesh_BuildPath(CNavArea startArea, CNavArea goalArea, const float goalPos[3], NavPathCostFunctor costFunctor, any costData=0, CNavArea &closestArea=INVALID_NAV_AREA, float maxPathLength=0.0);
-
-native CNavArea NavMesh_FindAreaByID( int areaID );
-
-native CNavArea NavMesh_GetArea(const float pos[3], float beneathLimit=120.0);
-
-native CNavArea NavMesh_GetNearestArea(const float pos[3], bool anyZ=false, float maxDist=10000.0, bool checkLOS=false, bool checkGround=true, int team=-2);
-
 native int NavMesh_WorldToGridX(float wx);
 
 native int NavMesh_WorldToGridY(float wy);
@@ -256,7 +247,21 @@ native int NavMesh_GetGridSizeX();
 
 native int NavMesh_GetGridSizeY();
 
+native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, CNavArea startArea, float travelDistLimit=1500.0, float maxStepUpLimit=StepHeight, float maxDropDownLimit=100.0);
+
+native bool NavMesh_BuildPath(CNavArea startArea, CNavArea goalArea, const float goalPos[3], NavPathCostFunctor costFunctor, any costData=0, CNavArea &closestArea=INVALID_NAV_AREA, float maxPathLength=0.0);
+
 native bool NavMesh_GetGroundHeight(const float pos[3], float &height=-1.0, float normal[3]=NULL_VECTOR);
+
+native CNavArea NavMesh_FindAreaByID( int areaID );
+
+native CNavArea NavMesh_GetArea(const float pos[3], float beneathLimit=120.0);
+
+native CNavArea NavMesh_GetNearestArea(const float pos[3], bool anyZ=false, float maxDist=10000.0, bool checkLOS=false, bool checkGround=true, int team=-2);
+
+native HidingSpot NavMesh_FindHidingSpotByID(int hidingSpotID);
+
+native HidingSpot NavMesh_GetRandomHidingSpot();
 
 
 // CNavArea
@@ -310,6 +315,8 @@ native bool NavMeshArea_IsEdge(int areaIndex, int dir);
 native bool NavMeshArea_Contains(int areaIndex, const float pos[3]);
 
 native void NavMeshArea_GetRandomPoint(int areaIndex, float buffer[3]);
+
+native bool NavMeshArea_IsConnected(int areaIndex, int targetAreaIndex, int dir);
 
 native bool NavMeshArea_ComputePortal(int areaIndex, int areaToIndex, int dir, float center[3], float &halfWidth);
 
@@ -426,6 +433,11 @@ methodmap CNavArea
 	public void GetRandomPoint( float buffer[3] )
 	{
 		NavMeshArea_GetRandomPoint(this.Index, buffer);
+	}
+	
+	public bool IsConnected( CNavArea targetArea, int dir )
+	{
+		return NavMeshArea_IsConnected(this.Index, targetArea.Index, dir);
 	}
 	
 	public void GetClosestPointOnArea( const float pos[3], float buffer[3] )

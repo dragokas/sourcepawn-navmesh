@@ -80,6 +80,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMesh_GetArea", Native_NavMeshGetArea);
 	CreateNative("NavMesh_GetNearestArea", Native_NavMeshGetNearestArea);
 	
+	CreateNative("NavMesh_FindHidingSpotByID", Native_NavMeshFindHidingSpotByID);
+	CreateNative("NavMesh_GetRandomHidingSpot", Native_NavMeshGetRandomHidingSpot);
+	
 	CreateNative("NavMesh_WorldToGridX", Native_NavMeshWorldToGridX);
 	CreateNative("NavMesh_WorldToGridY", Native_NavMeshWorldToGridY);
 	CreateNative("NavMesh_GetAreasOnGrid", Native_NavMeshGridGetAreas);
@@ -116,6 +119,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMeshArea_IsEdge", Native_NavMeshAreaIsEdge);
 	CreateNative("NavMeshArea_Contains", Native_NavMeshAreaContains);
 	CreateNative("NavMeshArea_GetRandomPoint", Native_NavMeshAreaGetRandomPoint);
+	CreateNative("NavMeshArea_IsConnected", Native_NavMeshAreaIsConnected);
 	CreateNative("NavMeshArea_ComputePortal", Native_NavMeshAreaComputePortal);
 	CreateNative("NavMeshArea_ComputeClosestPointInPortal", Native_NavMeshAreaComputeClosestPointInPortal);
 	CreateNative("NavMeshArea_ComputeDirection", Native_NavMeshAreaComputeDirection);
@@ -898,7 +902,7 @@ bool NavMeshLoad(const char[] sMapName)
 	}
 	
 	// Get the version.
-	new iNavVersion;
+	int iNavVersion;
 	iElementsRead = ReadFileCell(hFile, iNavVersion, UNSIGNED_INT_BYTE_SIZE);
 	
 	if (iElementsRead != 1)
@@ -1414,15 +1418,15 @@ bool NavMeshLoad(const char[] sMapName)
 			ReadFileCell(hFile, iLadderID, UNSIGNED_INT_BYTE_SIZE);
 			
 			float flLadderWidth;
-			ReadFileCell(hFile, _:flLadderWidth, FLOAT_BYTE_SIZE);
+			ReadFileCell(hFile, view_as<int>flLadderWidth, FLOAT_BYTE_SIZE);
 			
 			float flLadderTopX; float flLadderTopY; float flLadderTopZ; float flLadderBottomX; float flLadderBottomY; float flLadderBottomZ;
-			ReadFileCell(hFile, _:flLadderTopX, FLOAT_BYTE_SIZE);
-			ReadFileCell(hFile, _:flLadderTopY, FLOAT_BYTE_SIZE);
-			ReadFileCell(hFile, _:flLadderTopZ, FLOAT_BYTE_SIZE);
-			ReadFileCell(hFile, _:flLadderBottomX, FLOAT_BYTE_SIZE);
-			ReadFileCell(hFile, _:flLadderBottomY, FLOAT_BYTE_SIZE);
-			ReadFileCell(hFile, _:flLadderBottomZ, FLOAT_BYTE_SIZE);
+			ReadFileCell(hFile, view_as<int>flLadderTopX, FLOAT_BYTE_SIZE);
+			ReadFileCell(hFile, view_as<int>flLadderTopY, FLOAT_BYTE_SIZE);
+			ReadFileCell(hFile, view_as<int>flLadderTopZ, FLOAT_BYTE_SIZE);
+			ReadFileCell(hFile, view_as<int>flLadderBottomX, FLOAT_BYTE_SIZE);
+			ReadFileCell(hFile, view_as<int>flLadderBottomY, FLOAT_BYTE_SIZE);
+			ReadFileCell(hFile, view_as<int>flLadderBottomZ, FLOAT_BYTE_SIZE);
 			
 			float flLadderLength;
 			ReadFileCell(hFile, view_as<int>flLadderLength, FLOAT_BYTE_SIZE);
@@ -1471,8 +1475,8 @@ bool NavMeshLoad(const char[] sMapName)
 	
 	delete hFile;
 	
-	// File parsing is all done. Convert IDs to array indexes for faster performance and 
-	// lesser lookup time.
+	// File parsing is all done. Convert referenced IDs to array indexes for faster performance and 
+	// lesser lookup time in the future.
 	
 	if (g_hNavMeshAreaConnections.Length > 0)
 	{
@@ -2372,6 +2376,49 @@ stock bool NavMeshAreaComputePortal(int iAreaIndex, int iAreaToIndex, int iNavDi
 	return true;
 }
 
+stock bool NavMeshAreaIsConnected(int iAreaIndex, int iTargetAreaIndex, int iNavDirection)
+{
+	if (iAreaIndex == iTargetAreaIndex) return true;
+	
+	if (dir == NAV_DIR_COUNT)
+	{
+		for (new dir = 0; dir < NAV_DIR_COUNT; dir++)
+		{
+			if (NavMeshAreaIsConnected(iAreaIndex, iTargetAreaIndex, dir))
+			{
+				return true;
+			}
+		}
+		
+		// TODO: Check ladder connections.
+	}
+	else
+	{
+		ArrayStack areas = NavMeshAreaGetAdjacentList(iAreaIndex, iNavDirection);
+		if (areas != null)
+		{
+			if (!areas.Empty)
+			{
+				while (!areas.Empty)
+				{
+					int tempAreaIndex = -1;
+					PopStackCell(areas, tempAreaIndex);
+					
+					if (tempAreaIndex == iTargetAreaIndex)
+					{
+						delete areas;
+						return true;
+					}
+				}
+			}
+			
+			delete areas;
+		}
+		
+		return false;
+	}
+}
+
 stock float FloatMin(float a, float b)
 {
 	if (a < b) return a;
@@ -2824,6 +2871,16 @@ public int Native_NavMeshGetNearestArea(Handle plugin, int numParams)
 	return NavMeshGetNearestArea(flPos, view_as<bool>GetNativeCell(2), view_as<float>GetNativeCell(3), view_as<bool>GetNativeCell(4), view_as<bool>GetNativeCell(5), GetNativeCell(6));
 }
 
+public int Native_NavMeshFindHidingSpotByID(Handle plugin, int numParams)
+{
+	return g_hNavMeshAreaHidingSpots.FindValue(GetNativeCell(1));
+}
+
+public int Native_NavMeshGetRandomHidingSpot(Handle plugin, int numParams)
+{
+	return GetRandomInt(0, g_hNavMeshAreaHidingSpots.Length - 1);
+}
+
 public int Native_NavMeshWorldToGridX(Handle plugin, int numParams)
 {
 	return NavMeshWorldToGridX(view_as<float>GetNativeCell(1));
@@ -3105,6 +3162,11 @@ public int Native_NavMeshAreaComputePortal(Handle plugin, int numParams)
 	SetNativeArray(4, flCenter, 3);
 	SetNativeCellRef(5, flHalfWidth);
 	return bResult;
+}
+
+public int Native_NavMeshAreaIsConnected(Handle plugin, int numParams)
+{
+	return NavMeshAreaIsConnected(GetNativeCell(1), GetNativeCell(2), GetNativeCell(3));
 }
 
 public int Native_NavMeshAreaComputeClosestPointInPortal(Handle plugin, int numParams)
