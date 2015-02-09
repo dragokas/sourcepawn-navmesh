@@ -9,7 +9,7 @@
 
 #define NAV_MAGIC_NUMBER 0xFEEDFACE
 
-enum
+enum 
 {
 	NAV_DIR_NORTH = 0,
 	NAV_DIR_EAST,
@@ -18,7 +18,7 @@ enum
 	NAV_DIR_COUNT
 };
 
-enum
+enum NavCornerType
 {
 	NAV_CORNER_NORTH_WEST = 0,
 	NAV_CORNER_NORTH_EAST,
@@ -215,6 +215,7 @@ const CNavArea INVALID_NAV_AREA = view_as<CNavArea>-1;
 
 typedef NavPathCostFunctor = function int(CNavArea area, CNavArea from, int ladderIndex, any data);
 
+// NavMesh
 
 native bool NavMesh_Exists();
 
@@ -234,7 +235,6 @@ native ArrayList NavMesh_GetAreas();
 
 native ArrayList NavMesh_GetLadders();
 
-
 native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, CNavArea startArea, float travelDistLimit=1500.0, float maxStepUpLimit=StepHeight, float maxDropDownLimit=100.0);
 
 native bool NavMesh_BuildPath(CNavArea startArea, CNavArea goalArea, const float goalPos[3], NavPathCostFunctor costFunctor, any costData=0, CNavArea &closestArea=INVALID_NAV_AREA, float maxPathLength=0.0);
@@ -244,7 +244,6 @@ native CNavArea NavMesh_FindAreaByID( int areaID );
 native CNavArea NavMesh_GetArea(const float pos[3], float beneathLimit=120.0);
 
 native CNavArea NavMesh_GetNearestArea(const float pos[3], bool anyZ=false, float maxDist=10000.0, bool checkLOS=false, bool checkGround=true, int team=-2);
-
 
 native int NavMesh_WorldToGridX(float wx);
 
@@ -256,19 +255,20 @@ native int NavMesh_GetGridSizeX();
 
 native int NavMesh_GetGridSizeY();
 
-
 native bool NavMesh_GetGroundHeight(const float pos[3], float &height=-1.0, float normal[3]=NULL_VECTOR);
 
+
+// CNavArea
 
 native int NavMeshArea_GetID(int areaIndex);
 
 native int NavMeshArea_GetFlags(int areaIndex);
 
-native bool NavMeshArea_GetCenter(int areaIndex, float flBuffer[3]);
+native bool NavMeshArea_GetCenter(int areaIndex, float buffer[3]);
 
-native void NavMeshArea_GetAdjacentList(ArrayStack hStack, int areaIndex, int dir);
+native void NavMeshArea_GetAdjacentList(ArrayStack buffer, int areaIndex, int dir);
 
-native void NavMeshArea_GetLadderList(ArrayStack hStack, int areaIndex, int dir);
+native void NavMeshArea_GetLadderList(ArrayStack buffer, int areaIndex, int dir);
 
 native void NavMeshArea_GetClosestPointOnArea(int areaIndex, const float pos[3], float closePos[3]);
 
@@ -296,11 +296,17 @@ native float NavMeshArea_GetNECornerZ(int areaIndex);
 
 native float NavMeshArea_GetSWCornerZ(int areaIndex);
 
+native void NavMeshArea_GetCorner(int areaIndex, NavCornerType corner, float buffer[3]);
+
 native float NavMeshArea_GetZ(int areaIndex, const float pos[3]);
 
 native float NavMeshArea_GetZFromXAndY(int areaIndex, Float:x, Float:y);
 
+native bool NavMeshArea_IsEdge(int areaIndex, int dir);
+
 native bool NavMeshArea_Contains(int areaIndex, const float pos[3]);
+
+native void NavMeshArea_GetRandomPoint(int areaIndex, float buffer[3]);
 
 native bool NavMeshArea_ComputePortal(int areaIndex, int areaToIndex, int dir, float center[3], float &halfWidth);
 
@@ -309,7 +315,6 @@ native bool NavMeshArea_ComputeClosestPointInPortal(int areaIndex, int areaToInd
 native int NavMeshArea_ComputeDirection(int areaIndex, const float pos[3]);
 
 native float NavMeshArea_GetLightIntensity(int areaIndex, const float pos[3]);
-
 
 methodmap CNavArea
 {
@@ -355,6 +360,16 @@ methodmap CNavArea
 		public get() { return NavMeshArea_GetCostSoFar(this.Index); }
 	}
 	
+	property float NECornerZ
+	{
+		public get() { return NavMeshArea_GetNECornerZ(this.Index); }
+	}
+	
+	property float SWCornerZ
+	{
+		public get() { return NavMeshArea_GetSWCornerZ(this.Index); }
+	}
+	
 	public bool GetCenter( float buffer[3] )
 	{
 		return NavMeshArea_GetCenter(this.Index, buffer);
@@ -368,6 +383,11 @@ methodmap CNavArea
 	public bool GetExtentHigh( float buffer[3] )
 	{
 		return NavMeshArea_GetExtentHigh(this.Index, buffer);
+	}
+	
+	public void GetCorner( NavCornerType corner, float buffer[3] )
+	{
+		NavMeshArea_GetCorner( this.Index, corner, buffer );
 	}
 	
 	public float GetZ( const float point[3] )
@@ -395,6 +415,16 @@ methodmap CNavArea
 		return NavMeshArea_Contains(this.Index, point);
 	}
 	
+	public bool IsEdge( int dir )
+	{
+		return NavMeshArea_IsEdge(this.Index, dir);
+	}
+	
+	public void GetRandomPoint( float buffer[3] )
+	{
+		NavMeshArea_GetRandomPoint(this.Index, buffer);
+	}
+	
 	public void GetClosestPointOnArea( const float pos[3], float buffer[3] )
 	{
 		NavMeshArea_GetClosestPointOnArea(this.Index, pos, buffer);
@@ -403,6 +433,46 @@ methodmap CNavArea
 	public void GetAdjacentAreas( int dir, ArrayStack buffer )
 	{
 		NavMeshArea_GetAdjacentList( buffer, this.Index, dir );
+	}
+	
+	public int GetAdjacentCount( int dir )
+	{
+		ArrayStack buffer = new ArrayStack();
+		this.GetAdjacentAreas( dir, buffer );
+		int count = 0;
+		while (!buffer.Empty)
+		{
+			int value;
+			PopStackCell(buffer, value);
+			count++;
+		}
+		delete buffer;
+		return count;
+	}
+	
+	public CNavArea GetRandomAdjacentArea( int dir )
+	{
+		ArrayStack buffer = new ArrayStack();
+		this.GetAdjacentAreas( dir, buffer );
+		
+		if (buffer.Empty)
+		{
+			delete buffer;
+			return INVALID_NAV_AREA;
+		}
+		
+		ArrayList list = new ArrayList();
+		while (!buffer.Empty)
+		{
+			int value;
+			PopStackCell(buffer, value);
+			list.Push(value);
+		}
+		
+		delete buffer;
+		CNavArea area = CNavArea( list.Get( GetRandomInt(0, list.Length - 1) ) );
+		delete list;
+		return area;
 	}
 	
 	public void GetLadders( int dir, ArrayStack buffer )
@@ -430,6 +500,8 @@ methodmap CNavArea
 		return NavMeshArea_GetLightIntensity(this.Index, point);
 	}
 }
+
+// CNavLadder
 
 native float NavMeshLadder_GetLength(int iLadderID);
 

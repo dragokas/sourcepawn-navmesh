@@ -109,9 +109,12 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMeshArea_IsOverlappingArea", Native_NavMeshAreaIsOverlappingArea);
 	CreateNative("NavMeshArea_GetNECornerZ", Native_NavMeshAreaGetNECornerZ);
 	CreateNative("NavMeshArea_GetSWCornerZ", Native_NavMeshAreaGetSWCornerZ);
+	CreateNative("NavMeshArea_GetCorner", Native_NavMeshAreaGetCorner);
 	CreateNative("NavMeshArea_GetZ", Native_NavMeshAreaGetZ);
 	CreateNative("NavMeshArea_GetZFromXAndY", Native_NavMeshAreaGetZFromXAndY);
+	CreateNative("NavMeshArea_IsEdge", Native_NavMeshAreaIsEdge);
 	CreateNative("NavMeshArea_Contains", Native_NavMeshAreaContains);
+	CreateNative("NavMeshArea_GetRandomPoint", Native_NavMeshAreaGetRandomPoint);
 	CreateNative("NavMeshArea_ComputePortal", Native_NavMeshAreaComputePortal);
 	CreateNative("NavMeshArea_ComputeClosestPointInPortal", Native_NavMeshAreaComputeClosestPointInPortal);
 	CreateNative("NavMeshArea_ComputeDirection", Native_NavMeshAreaComputeDirection);
@@ -428,7 +431,7 @@ bool NavMeshBuildPath(int iStartAreaIndex,
 					continue;
 				}
 				
-				hFloorList.Pop(iNewAreaIndex);
+				PopStackCell(hFloorList, iNewAreaIndex);
 				iNavTraverseHow = iSearchDir;
 			}
 			else if (iSearchWhere == SEARCH_LADDERS)
@@ -451,7 +454,7 @@ bool NavMeshBuildPath(int iStartAreaIndex,
 					continue;
 				}
 				
-				hLadderList.Pop(iLadderIndex);
+				PopStackCell(hLadderList, iLadderIndex);
 				
 				if (bLadderUp)
 				{
@@ -1836,7 +1839,7 @@ stock int NavMeshGetNearestArea(float flPos[3], bool bAnyZ=false, float flMaxDis
 					while (!hAreas.Empty)
 					{
 						int iAreaIndex = -1;
-						hAreas.Pop(iAreaIndex);
+						PopStackCell(hAreas, iAreaIndex);
 						
 						int iAreaNearSearchMarker = g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_NearSearchMarker);
 						if (iAreaNearSearchMarker == iSearchMarker) continue;
@@ -1985,6 +1988,45 @@ stock bool NavMeshAreaGetCenter(int iAreaIndex, float flBuffer[3])
 	flBuffer[1] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_CenterY);
 	flBuffer[2] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_CenterZ);
 	return true;
+}
+
+stock void NavMeshAreaGetCorner(int iAreaIndex, NavCornerType corner, float buffer[3])
+{
+	switch (corner)
+	{
+		case NAV_CORNER_NORTH_WEST:
+		{
+			NavMeshAreaGetExtentLow( iAreaIndex, buffer );
+		}
+		case NAV_CORNER_NORTH_EAST:
+		{
+			buffer[0] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_X2);
+			buffer[1] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_Y1);
+			buffer[2] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_NECornerZ);
+		}
+		case NAV_CORNER_SOUTH_WEST:
+		{
+			buffer[0] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_X1);
+			buffer[1] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_Y2);
+			buffer[2] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_SWCornerZ);
+		}
+		case NAV_CORNER_SOUTH_EAST:
+		{
+			NavMeshAreaGetExtentHigh( iAreaIndex, buffer );
+		}
+	}
+}
+
+stock void NavMeshAreaGetRandomPoint(int iAreaIndex, float buffer[3])
+{
+	float extentLow[3];
+	float extentHigh[3];
+	NavMeshAreaGetExtentLow(iAreaIndex, extentLow);
+	NavMeshAreaGetExtentHigh(iAreaIndex, extentHigh);
+	
+	buffer[0] = GetRandomFloat(extentLow[0], extentHigh[0]);
+	buffer[1] = GetRandomFloat(extentLow[1], extentHigh[1]);
+	buffer[2] = NavMeshAreaGetZ(iAreaIndex, buffer);
 }
 
 stock ArrayStack NavMeshAreaGetAdjacentList(int iAreaIndex, int iNavDirection)
@@ -2540,8 +2582,8 @@ stock int NavMeshGetArea(const float flPos[3], float flBeneathLimit=120.0)
 	{
 		while (!hAreas.Empty)
 		{
-			new iAreaIndex = -1;
-			hAreas.Pop(iAreaIndex);
+			int iAreaIndex = -1;
+			PopStackCell(hAreas, iAreaIndex);
 			
 			if (NavMeshAreaIsOverlappingPoint(iAreaIndex, flTestPos, 0.0))
 			{
@@ -2716,7 +2758,7 @@ public int Native_NavMeshCollectSurroundingAreas(Handle plugin, int numParams)
 		while (!IsStackEmpty(hDummy))
 		{
 			int iAreaIndex = -1;
-			hDummy.Pop(iAreaIndex);
+			PopStackCell(hDummy, iAreaIndex);
 			hTarget.Push(iAreaIndex);
 		}
 		
@@ -2780,7 +2822,7 @@ public int Native_NavMeshGridGetAreas(Handle plugin, int numParams)
 		while (!hDummy.Empty)
 		{
 			int iAreaIndex = -1;
-			hDummy.Pop(iAreaIndex);
+			PopStackCell(hDummy, iAreaIndex);
 			hTarget.Push(iAreaIndex);
 		}
 		
@@ -2864,7 +2906,7 @@ public int Native_NavMeshAreaGetAdjacentList(Handle plugin, int numParams)
 		while (!hDummy.Empty)
 		{
 			new iAreaIndex = -1;
-			hDummy.Pop(iAreaIndex);
+			PopStackCell(hDummy, iAreaIndex);
 			hTarget.Push(iAreaIndex);
 		}
 		
@@ -2881,7 +2923,7 @@ public int Native_NavMeshAreaGetLadderList(Handle plugin, int numParams)
 	{
 		while (!IsStackEmpty(hDummy))
 		{
-			new iAreaIndex = -1;
+			int iAreaIndex = -1;
 			PopStackCell(hDummy, iAreaIndex);
 			PushStackCell(hTarget, iAreaIndex);
 		}
@@ -2967,6 +3009,14 @@ public int Native_NavMeshAreaGetSWCornerZ(Handle plugin, int numParams)
 	return view_as<int>NavMeshAreaGetSWCornerZ(GetNativeCell(1));
 }
 
+public int Native_NavMeshAreaGetCorner(Handle plugin, int numParams)
+{
+	float buffer[3];
+	GetNativeArray(3, buffer, 3);
+	NavMeshAreaGetCorner(GetNativeCell(1), view_as<NavCornerType>GetNativeCell(2), buffer);
+	SetNativeArray(3, buffer, 3);
+}
+
 public int Native_NavMeshAreaGetZ(Handle plugin, int numParams)
 {
 	float flPos[3];
@@ -2980,12 +3030,25 @@ public int Native_NavMeshAreaGetZFromXAndY(Handle plugin, int numParams)
 	return view_as<int>NavMeshAreaGetZFromXAndY(GetNativeCell(1), view_as<float>GetNativeCell(2), view_as<float>GetNativeCell(3));
 }
 
+public int Native_NavMeshAreaIsEdge(Handle plugin, int numParams)
+{
+	return NavMeshAreaIsEdge(GetNativeCell(1), GetNativeCell(2));
+}
+
 public int Native_NavMeshAreaContains(Handle plugin, int numParams)
 {
 	float flPos[3];
 	GetNativeArray(2, flPos, 3);
 
 	return NavMeshAreaContains(GetNativeCell(1), flPos);
+}
+
+public int Native_NavMeshAreaGetRandomPoint(Handle plugin, int numParams)
+{
+	float buffer[3];
+	GetNativeArray(2, buffer, 3);
+	NavMeshAreaGetRandomPoint(GetNativeCell(1), buffer);
+	SetNativeArray(2, buffer, 3);
 }
 
 public int Native_NavMeshAreaComputePortal(Handle plugin, int numParams)

@@ -110,15 +110,12 @@ public Action Command_GetAdjacentNavAreas(int client, int args)
 		return Plugin_Handled;
 	}
 	
-	ArrayList hAreas = NavMesh_GetAreas();
-	if (hAreas == null) return Plugin_Handled;
-	
 	char sAreaID[64];
 	GetCmdArg(1, sAreaID, sizeof(sAreaID));
 	
 	int iAreaID = StringToInt(sAreaID);
 	
-	CNavArea startArea = view_as<CNavArea>hAreas.FindValue(iAreaID);
+	CNavArea startArea = NavMesh_FindAreaByID(iAreaID);
 	if (startArea == INVALID_NAV_AREA) return Plugin_Handled;
 	
 	char sNavDirection[64];
@@ -165,9 +162,6 @@ public Action Command_NavMeshCollectSurroundingAreas(int client, int args)
 	
 	if (!NavMesh_Exists()) return Plugin_Handled;
 	
-	ArrayList hAreas = NavMesh_GetAreas();
-	if (hAreas == null) return Plugin_Handled;
-	
 	char sAreaID[64];
 	GetCmdArg(1, sAreaID, sizeof(sAreaID));
 	
@@ -191,21 +185,21 @@ public Action Command_NavMeshCollectSurroundingAreas(int client, int args)
 	
 	if (!hNearAreas.Empty)
 	{
-		int iAreaCount = 0;
+		int areaCount = 0;
 		while (!hNearAreas.Empty)
 		{
 			int iSomething;
 			hNearAreas.Pop(iSomething);
-			iAreaCount++;
+			areaCount++;
 		}
 		
 		if (client > 0) 
 		{
-			PrintToChat(client, "Collected %d areas in %f seconds.", iAreaCount, flProfileTime);
+			PrintToChat(client, "Collected %d areas in %f seconds.", areaCount, flProfileTime);
 		}
 		else
 		{
-			PrintToServer("Collected %d areas in %f seconds.", iAreaCount, flProfileTime);
+			PrintToServer("Collected %d areas in %f seconds.", areaCount, flProfileTime);
 		}
 	}
 	
@@ -251,7 +245,7 @@ public Action Command_GetNavAreasOnGrid(int client, int args)
 	
 	int x = StringToInt(arg1);
 	
-	decl String:arg2[32];
+	char arg2[32];
 	GetCmdArg(2, arg2, sizeof(arg2));
 	
 	int y = StringToInt(arg2);
@@ -283,9 +277,6 @@ public Action Command_NavMeshBuildPath(int client, int args)
 	}
 	
 	if (!NavMesh_Exists()) return Plugin_Handled;
-	
-	ArrayList hAreas = NavMesh_GetAreas();
-	if (hAreas == null) return Plugin_Handled;
 	
 	char sStartAreaID[64]; char sGoalAreaID[64];
 	GetCmdArg(1, sStartAreaID, sizeof(sStartAreaID));
@@ -325,9 +316,7 @@ public Action Command_NavMeshBuildPath(int client, int args)
 		flMaxPathLength);
 	
 	StopProfiling(hProfiler);
-	
 	float flProfileTime = GetProfilerTime(hProfiler);
-	
 	delete hProfiler;
 	
 	if (client > 0) 
