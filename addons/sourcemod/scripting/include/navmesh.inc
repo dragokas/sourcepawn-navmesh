@@ -213,7 +213,7 @@ enum
 };
 
 const CNavArea INVALID_NAV_AREA = view_as<CNavArea>-1;
-const HidingSpot INVALID_NAV_HIDING_SPOT = view_as<CNavArea>-1;
+const HidingSpot INVALID_NAV_HIDING_SPOT = view_as<HidingSpot>-1;
 
 typedef NavPathCostFunctor = function int(CNavArea area, CNavArea from, int ladderIndex, any data);
 

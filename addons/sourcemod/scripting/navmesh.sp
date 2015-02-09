@@ -2380,9 +2380,9 @@ stock bool NavMeshAreaIsConnected(int iAreaIndex, int iTargetAreaIndex, int iNav
 {
 	if (iAreaIndex == iTargetAreaIndex) return true;
 	
-	if (dir == NAV_DIR_COUNT)
+	if (iNavDirection == NAV_DIR_COUNT)
 	{
-		for (new dir = 0; dir < NAV_DIR_COUNT; dir++)
+		for (int dir = 0; dir < NAV_DIR_COUNT; dir++)
 		{
 			if (NavMeshAreaIsConnected(iAreaIndex, iTargetAreaIndex, dir))
 			{
@@ -2414,9 +2414,9 @@ stock bool NavMeshAreaIsConnected(int iAreaIndex, int iTargetAreaIndex, int iNav
 			
 			delete areas;
 		}
-		
-		return false;
 	}
+	
+	return false;
 }
 
 stock float FloatMin(float a, float b)
