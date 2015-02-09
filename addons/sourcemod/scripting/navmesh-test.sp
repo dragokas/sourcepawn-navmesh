@@ -171,8 +171,7 @@ public Action Command_NavMeshCollectSurroundingAreas(int client, int args)
 	char sAreaID[64];
 	GetCmdArg(1, sAreaID, sizeof(sAreaID));
 	
-	CNavArea area = view_as<CNavArea>hAreas.FindValue(StringToInt(sAreaID));
-	
+	CNavArea area = NavMesh_FindAreaByID(StringToInt(sAreaID));
 	if (area == INVALID_NAV_AREA) return Plugin_Handled;
 	
 	char sMaxDist[64];
@@ -292,20 +291,20 @@ public Action Command_NavMeshBuildPath(int client, int args)
 	GetCmdArg(1, sStartAreaID, sizeof(sStartAreaID));
 	GetCmdArg(2, sGoalAreaID, sizeof(sGoalAreaID));
 	
-	CNavArea startArea = view_as<CNavArea>hAreas.FindValue(StringToInt(sStartAreaID));
-	CNavArea goalArea = view_as<CNavArea>hAreas.FindValue(StringToInt(sGoalAreaID));
+	CNavArea startArea = NavMesh_FindAreaByID(StringToInt(sStartAreaID));
+	CNavArea goalArea = NavMesh_FindAreaByID(StringToInt(sGoalAreaID));
 	
 	if (startArea == INVALID_NAV_AREA || goalArea == INVALID_NAV_AREA) return Plugin_Handled;
 	
 	float flGoalPos[3];
 	goalArea.GetCenter(flGoalPos);
 	
-	new iColor[4] = { 0, 255, 0, 255 };
+	int iColor[4] = { 0, 255, 0, 255 };
 	
-	new Float:flMaxPathLength = 0.0;
+	float flMaxPathLength = 0.0;
 	if (args > 2)
 	{
-		decl String:sMaxPathLength[64];
+		char sMaxPathLength[64];
 		GetCmdArg(3, sMaxPathLength, sizeof(sMaxPathLength));
 		flMaxPathLength = StringToFloat(sMaxPathLength);
 		

@@ -239,6 +239,7 @@ native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, CNavArea startAre
 
 native bool NavMesh_BuildPath(CNavArea startArea, CNavArea goalArea, const float goalPos[3], NavPathCostFunctor costFunctor, any costData=0, CNavArea &closestArea=INVALID_NAV_AREA, float maxPathLength=0.0);
 
+native CNavArea NavMesh_FindAreaByID( int areaID );
 
 native CNavArea NavMesh_GetArea(const float pos[3], float beneathLimit=120.0);
 
@@ -312,6 +313,11 @@ native float NavMeshArea_GetLightIntensity(int areaIndex, const float pos[3]);
 
 methodmap CNavArea
 {
+	public CNavArea( int index )
+	{
+		return view_as<CNavArea>index;
+	}
+
 	property int Index
 	{
 		public get() { return view_as<int>this; }
@@ -329,7 +335,7 @@ methodmap CNavArea
 	
 	property CNavArea Parent
 	{
-		public get() { return view_as<CNavArea>NavMeshArea_GetParent(this.Index); }
+		public get() { return CNavArea(NavMeshArea_GetParent(this.Index)); }
 		public set( CNavArea area ) { NavMeshArea_SetParent(this.Index, area.Index); }
 	}
 	
@@ -347,11 +353,6 @@ methodmap CNavArea
 	property int CostSoFar
 	{
 		public get() { return NavMeshArea_GetCostSoFar(this.Index); }
-	}
-	
-	public CNavArea( int index )
-	{
-		return view_as<CNavArea>index;
 	}
 	
 	public bool GetCenter( float buffer[3] )

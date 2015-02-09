@@ -76,6 +76,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMesh_CollectSurroundingAreas", Native_NavMeshCollectSurroundingAreas);
 	CreateNative("NavMesh_BuildPath", Native_NavMeshBuildPath);
 	
+	CreateNative("NavMesh_FindAreaByID", Native_NavMeshFindAreaByID);
 	CreateNative("NavMesh_GetArea", Native_NavMeshGetArea);
 	CreateNative("NavMesh_GetNearestArea", Native_NavMeshGetNearestArea);
 	
@@ -1964,6 +1965,11 @@ stock int NavMeshAreaGetID(int iAreaIndex)
 	return g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_ID);
 }
 
+stock int NavMeshFindAreaByID(int iAreaID)
+{
+	return g_hNavMeshAreas.FindValue(iAreaID);
+}
+
 stock int NavMeshAreaGetFlags(int iAreaIndex)
 {
 	if (!g_bNavMeshBuilt) return 0;
@@ -2809,6 +2815,11 @@ public int Native_NavMeshGetGroundHeight(Handle plugin, int numParams)
 	SetNativeCellRef(2, flHeight);
 	SetNativeArray(3, flNormal, 3);
 	return bResult;
+}
+
+public int Native_NavMeshFindAreaByID(Handle plugin, int numParams)
+{
+	return NavMeshFindAreaByID(GetNativeCell(1));
 }
 
 public int Native_NavMeshAreaGetMasterMarker(Handle plugin, int numParams)
