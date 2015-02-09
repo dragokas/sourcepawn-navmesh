@@ -212,102 +212,157 @@ enum
 };
 
 
-native NavMesh_Exists();
+native bool NavMesh_Exists();
 
-native NavMesh_GetMagicNumber();
+native int NavMesh_GetMagicNumber();
 
-native NavMesh_GetVersion();
+native int NavMesh_GetVersion();
 
-native NavMesh_GetSubVersion();
+native int NavMesh_GetSubVersion();
 
-native NavMesh_GetSaveBSPSize();
+native int NavMesh_GetSaveBSPSize();
 
-native bool:NavMesh_IsAnalyzed();
+native bool NavMesh_IsAnalyzed();
 
-native Handle:NavMesh_GetPlaces();
+native ArrayList NavMesh_GetPlaces();
 
-native Handle:NavMesh_GetAreas();
+native ArrayList NavMesh_GetAreas();
 
-native Handle:NavMesh_GetLadders();
-
-
-native NavMesh_CollectSurroundingAreas(Handle:hStack, iStartAreaIndex, Float:flTravelDistanceLimit=1500.0, Float:flMaxStepUpLimit=StepHeight, Float:flMaxDropDownLimit=100.0);
-
-native bool:NavMesh_BuildPath(iStartAreaIndex, iGoalAreaIndex, const Float:flGoalPos[3], Function:iCostFunctor, any:iCostData=INVALID_HANDLE, &iClosestAreaIndex=-1, Float:flMaxPathLength=0.0);
+native ArrayList NavMesh_GetLadders();
 
 
-native NavMesh_GetArea(const Float:flPos[3], Float:flBeneathLimit=120.0);
+typedef NavPathCostFunctor = function int(int areaIndex, int fromAreaIndex, int ladderIndex, any data);
 
-native NavMesh_GetNearestArea(const Float:flPos[3], bool:bAnyZ=false, Float:flMaxDist=10000.0, bool:bCheckLOS=false, bool:bCheckGround=true, iTeam=-2);
+native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, int iStartAreaIndex, float flTravelDistanceLimit=1500.0, float flMaxStepUpLimit=StepHeight, float flMaxDropDownLimit=100.0);
 
-
-native NavMesh_WorldToGridX(Float:flWX);
-
-native NavMesh_WorldToGridY(Float:flWY);
-
-native NavMesh_GetAreasOnGrid(Handle:hStack, x, y);
-
-native NavMesh_GetGridSizeX();
-
-native NavMesh_GetGridSizeY();
+native bool NavMesh_BuildPath(int iStartAreaIndex, int iGoalAreaIndex, const float flGoalPos[3], NavPathCostFunctor iCostFunctor, any iCostData=0, int &iClosestAreaIndex=-1, float flMaxPathLength=0.0);
 
 
-native bool:NavMesh_GetGroundHeight(const Float:flPos[3], &Float:flHeight=-1.0, Float:flNormal[3]=NULL_VECTOR);
+native int NavMesh_GetArea(const float flPos[3], float flBeneathLimit=120.0);
+
+native int NavMesh_GetNearestArea(const float flPos[3], bool bAnyZ=false, float flMaxDist=10000.0, bool bCheckLOS=false, bool bCheckGround=true, int iTeam=-2);
 
 
-native NavMeshArea_GetFlags(iAreaIndex);
+native int NavMesh_WorldToGridX(float flWX);
 
-native bool:NavMeshArea_GetCenter(iAreaIndex, Float:flBuffer[3]);
+native int NavMesh_WorldToGridY(float flWY);
 
-native NavMeshArea_GetAdjacentList(Handle:hStack, iAreaIndex, iDirection);
+native void NavMesh_GetAreasOnGrid(ArrayStack hStack, int x, int y);
 
-native NavMeshArea_GetLadderList(Handle:hStack, iAreaIndex, iLadderDirection);
+native int NavMesh_GetGridSizeX();
 
-native NavMeshArea_GetClosestPointOnArea(iAreaIndex, const Float:flPos[3], Float:flClose[3]);
+native int NavMesh_GetGridSizeY();
 
-native NavMeshArea_GetTotalCost(iAreaIndex);
 
-native NavMeshArea_GetCostSoFar(iAreaIndex);
+native bool NavMesh_GetGroundHeight(const float flPos[3], float &flHeight=-1.0, float flNormal[3]=NULL_VECTOR);
 
-native NavMeshArea_GetParent(iAreaIndex);
 
-native NavMeshArea_GetParentHow(iAreaIndex);
+native int NavMeshArea_GetFlags(int iAreaIndex);
 
-native NavMeshArea_SetParent(iAreaIndex, iParentAreaID);
+native bool NavMeshArea_GetCenter(int iAreaIndex, float flBuffer[3]);
 
-native NavMeshArea_SetParentHow(iAreaIndex, iParentHow);
+native void NavMeshArea_GetAdjacentList(ArrayStack hStack, int iAreaIndex, int iDirection);
 
-native bool:NavMeshArea_GetExtentLow(iAreaIndex, Float:flBuffer[3]);
+native void NavMeshArea_GetLadderList(ArrayStack hStack, int iAreaIndex, int iLadderDirection);
 
-native bool:NavMeshArea_GetExtentHigh(iAreaIndex, Float:flBuffer[3]);
+native void NavMeshArea_GetClosestPointOnArea(int iAreaIndex, const float flPos[3], float flClose[3]);
 
-native bool:NavMeshArea_IsOverlappingPoint(iAreaIndex, const Float:flPos[3], Float:flTolerance);
+native int NavMeshArea_GetTotalCost(int iAreaIndex);
 
-native bool:NavMeshArea_IsOverlappingArea(iAreaIndex, iTargetAreaID);
+native int NavMeshArea_GetCostSoFar(int iAreaIndex);
 
-native Float:NavMeshArea_GetNECornerZ(iAreaIndex);
+native int NavMeshArea_GetParent(int iAreaIndex);
 
-native Float:NavMeshArea_GetSWCornerZ(iAreaIndex);
+native int NavMeshArea_GetParentHow(int iAreaIndex);
 
-native Float:NavMeshArea_GetZ(iAreaIndex, const Float:flPos[3]);
+native void NavMeshArea_SetParent(int iAreaIndex, int iParentAreaID);
 
-native Float:NavMeshArea_GetZFromXAndY(iAreaIndex, Float:flX, Float:flY);
+native void NavMeshArea_SetParentHow(int iAreaIndex, int iParentHow);
 
-native bool:NavMeshArea_Contains(iAreaIndex, const Float:flPos[3]);
+native bool NavMeshArea_GetExtentLow(int iAreaIndex, float flBuffer[3]);
 
-native bool:NavMeshArea_ComputePortal(iAreaIndex, iAreaToIndex, iNavDirection, Float:flCenter[3], &Float:flHalfWidth);
+native bool NavMeshArea_GetExtentHigh(int iAreaIndex, float flBuffer[3]);
 
-native bool:NavMeshArea_ComputeClosestPointInPortal(iAreaIndex, iAreaToIndex, iNavDirection, const Float:flFromPos[3], Float:flClosestPos[3]);
+native bool NavMeshArea_IsOverlappingPoint(int iAreaIndex, const float flPos[3], float flTolerance);
 
-native NavMeshArea_ComputeDirection(iAreaIndex, const Float:flPos[3]);
+native bool NavMeshArea_IsOverlappingArea(int iAreaIndex, int iTargetAreaIndex);
 
-native Float:NavMeshArea_GetLightIntensity(iAreaIndex, const Float:flPos[3]);
+native float NavMeshArea_GetNECornerZ(int iAreaIndex);
 
-native Float:NavMeshLadder_GetLength(iLadderID);
+native float NavMeshArea_GetSWCornerZ(int iAreaIndex);
+
+native float NavMeshArea_GetZ(int iAreaIndex, const float flPos[3]);
+
+native float NavMeshArea_GetZFromXAndY(int iAreaIndex, Float:flX, Float:flY);
+
+native bool NavMeshArea_Contains(int iAreaIndex, const float flPos[3]);
+
+native bool NavMeshArea_ComputePortal(int iAreaIndex, int iAreaToIndex, int iNavDirection, float flCenter[3], float &flHalfWidth);
+
+native bool NavMeshArea_ComputeClosestPointInPortal(int iAreaIndex, int iAreaToIndex, int iNavDirection, const float flFromPos[3], float flClosestPos[3]);
+
+native int NavMeshArea_ComputeDirection(int iAreaIndex, const float flPos[3]);
+
+native float NavMeshArea_GetLightIntensity(int iAreaIndex, const float flPos[3]);
+
+methodmap CNavArea
+{
+	property int Index
+	{
+		public get() { return view_as<int>this; }
+	}
+	
+	property int AttributeFlags
+	{
+		public get() { return NavMeshArea_GetFlags(this.Index); }
+	}
+	
+	public bool GetCenter( float buffer[3] )
+	{
+		return NavMeshArea_GetCenter(this.Index, buffer);
+	}
+	
+	public bool GetExtentLow( float buffer[3] )
+	{
+		return NavMeshArea_GetExtentLow(this.Index, buffer);
+	}
+	
+	public bool GetExtentHigh( float buffer[3] )
+	{
+		return NavMeshArea_GetExtentHigh(this.Index, buffer);
+	}
+	
+	public float GetZ( const float point[3] )
+	{
+		return NavMeshArea_GetZ(this.Index, point);
+	}
+	
+	public float GetZ( float x, float y )
+	{
+		return NavMeshArea_GetZFromXAndY(this.Index, x, y);
+	}
+	
+	public bool IsOverlapping( const float point[3], float tolerance=0.0 )
+	{
+		return NavMeshArea_IsOverlappingPoint(this.Index, point, tolerance);
+	}
+	
+	public bool IsOverlapping( CNavArea area )
+	{
+		return NavMeshArea_IsOverlappingArea(this.Index, area.Index);
+	}
+	
+	public float GetLightIntensity( const float point[3] )
+	{
+		return NavMeshArea_GetLightIntensity(this.Index, point);
+	}
+}
+
+native float NavMeshLadder_GetLength(int iLadderID);
 
 
 // Shortest-path cost function for NavMesh_BuildPath.
-public NavMeshShortestPathCost(iAreaIndex, iFromAreaIndex, iLadderIndex, any:data)
+public int NavMeshShortestPathCost(int iAreaIndex, int iFromAreaIndex, int iLadderIndex, any data)
 {
 	if (iFromAreaIndex == -1)
 	{
@@ -342,19 +397,18 @@ public NavMeshShortestPathCost(iAreaIndex, iFromAreaIndex, iLadderIndex, any:dat
 
 #define WALK_THRU_PROP_DOORS		0x01
 #define WALK_THRU_FUNC_DOORS		0x02
-#define WALK_THRU_DOORS				(WALK_THRU_PROP_DOORS | WALK_THRU_FUNC_DOORS)
+#define WALK_THRU_DOORS 			(WALK_THRU_PROP_DOORS | WALK_THRU_FUNC_DOORS)
 #define WALK_THRU_BREAKABLES		0x04
 #define WALK_THRU_TOGGLE_BRUSHES	0x08
 #define WALK_THRU_EVERYTHING		(WALK_THRU_DOORS | WALK_THRU_BREAKABLES | WALK_THRU_TOGGLE_BRUSHES)
 
 
-stock bool:IsEntityWalkable(iEnt, iFlags)
+stock bool IsEntityWalkable(int iEnt, int iFlags)
 {
-	decl String:sClass[64];
+	char sClass[64];
 	GetEntityClassname(iEnt, sClass, sizeof(sClass));
 	
 	if (!strcmp(sClass, "worldspawn")) return false;
-	
 	if (!strcmp(sClass, "player")) return false;
 	
 	if (!strcmp(sClass, "func_door*"))
@@ -369,7 +423,7 @@ stock bool:IsEntityWalkable(iEnt, iFlags)
 	
 	if (!strcmp(sClass, "func_brush"))
 	{
-		new iSolidity = GetEntProp(iEnt, Prop_Data, "m_iSolidity");
+		int iSolidity = GetEntProp(iEnt, Prop_Data, "m_iSolidity");
 		
 		switch (iSolidity)
 		{
@@ -403,29 +457,29 @@ stock bool:IsEntityWalkable(iEnt, iFlags)
 	return false;
 }
 
-stock bool:IsWalkableTraceLineClear(const Float:flFrom[3], const Float:flTo[3], iFlags)
+stock bool IsWalkableTraceLineClear(const float flFrom[3], const float flTo[3], int iFlags)
 {
-	decl Float:flUseFrom[3];
+	float flUseFrom[3];
 	flUseFrom[0] = flFrom[0];
 	flUseFrom[1] = flFrom[1];
 	flUseFrom[2] = flFrom[2];
 	
-	decl Handle:hTrace;
+	Handle hTrace;
 	
-	new Float:flFraction = 0.0;
+	float flFraction = 0.0;
 	
-	for (new t = 0; t < 50; t++)
+	for (int t = 0; t < 50; t++)
 	{
 		hTrace = TR_TraceRayFilterEx(flUseFrom, flTo, MASK_NPCSOLID, RayType_EndPoint, TraceFilterWalkableEntities, iFlags);
 		flFraction = TR_GetFraction(hTrace);
-		new iResEnt = TR_GetEntityIndex(hTrace);
-		decl Float:flResPos[3];
+		int iResEnt = TR_GetEntityIndex(hTrace);
+		float flResPos[3];
 		TR_GetEndPosition(flResPos, hTrace);
-		CloseHandle(hTrace);
+		delete hTrace;
 		
 		if (flFraction != 1.0 && IsEntityWalkable(iResEnt, iFlags))
 		{
-			decl Float:flDir[3];
+			float flDir[3];
 			SubtractVectors(flTo, flFrom, flDir);
 			NormalizeVector(flDir, flDir);
 			ScaleVector(flDir, 5.0);
@@ -442,13 +496,13 @@ stock bool:IsWalkableTraceLineClear(const Float:flFrom[3], const Float:flTo[3], 
 	return false;
 }
 
-public bool:TraceFilterWalkableEntities(entity, mask, any:iFlags)
+public bool TraceFilterWalkableEntities(int entity, int mask, any iFlags)
 {
 	return !IsEntityWalkable(entity, iFlags);
 }
 
 
-public SharedPlugin:__pl_navmesh = 
+public SharedPlugin __pl_navmesh = 
 {
 	name = "navmesh",
 	file = "navmesh.smx",
@@ -457,4 +511,4 @@ public SharedPlugin:__pl_navmesh =
 #else
 	required = 0,
 #endif
-};
+};};
