@@ -328,7 +328,7 @@ methodmap CNavArea
 		public get() { return NavMeshArea_GetID(this.Index); }
 	}
 	
-	property int AttributeFlags
+	property int Attributes
 	{
 		public get() { return NavMeshArea_GetFlags(this.Index); }
 	}
@@ -458,7 +458,7 @@ public int NavMeshShortestPathCost(CNavArea area, CNavArea from, int ladderIndex
 		}
 		
 		int iCost = iDist + from.CostSoFar;
-		int iAreaFlags = area.AttributeFlags;
+		int iAreaFlags = area.Attributes;
 		if (iAreaFlags & NAV_MESH_CROUCH) iCost += 20;
 		if (iAreaFlags & NAV_MESH_JUMP) iCost += (5 * iDist);
 		return iCost;
