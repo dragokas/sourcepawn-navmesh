@@ -24,6 +24,156 @@ public Plugin myinfo =
 #define UNSIGNED_SHORT_BYTE_SIZE 2
 #define FLOAT_BYTE_SIZE 4
 
+enum
+{
+	NavMeshArea_ID = 0,
+	NavMeshArea_Flags,
+	NavMeshArea_PlaceID,
+	NavMeshArea_X1,
+	NavMeshArea_Y1,
+	NavMeshArea_Z1,
+	NavMeshArea_X2,
+	NavMeshArea_Y2,
+	NavMeshArea_Z2,
+	NavMeshArea_CenterX,
+	NavMeshArea_CenterY,
+	NavMeshArea_CenterZ,
+	NavMeshArea_InvDxCorners,
+	NavMeshArea_InvDyCorners,
+	NavMeshArea_NECornerZ,
+	NavMeshArea_SWCornerZ,
+	
+//	NavMeshArea_Connections,
+	NavMeshArea_ConnectionsStartIndex,
+	NavMeshArea_ConnectionsEndIndex,
+	
+//	NavMeshArea_HidingSpots,
+	NavMeshArea_HidingSpotsStartIndex,
+	NavMeshArea_HidingSpotsEndIndex,
+	
+//	NavMeshArea_EncounterPaths,
+	NavMeshArea_EncounterPathsStartIndex,
+	NavMeshArea_EncounterPathsEndIndex,
+	
+//	NavMeshArea_LadderConnections,
+	NavMeshArea_LadderConnectionsStartIndex,
+	NavMeshArea_LadderConnectionsEndIndex,
+	
+	NavMeshArea_CornerLightIntensityNW,
+	NavMeshArea_CornerLightIntensityNE,
+	NavMeshArea_CornerLightIntensitySE,
+	NavMeshArea_CornerLightIntensitySW,
+	
+//	NavMeshArea_VisibleAreas,
+	NavMeshArea_VisibleAreasStartIndex,
+	NavMeshArea_VisibleAreasEndIndex,
+	
+	NavMeshArea_InheritVisibilityFrom,
+	NavMeshArea_EarliestOccupyTimeFirstTeam,
+	NavMeshArea_EarliestOccupyTimeSecondTeam,
+	NavMeshArea_unk01,
+	NavMeshArea_Blocked,
+	
+// 	A* pathfinding
+	NavMeshArea_Parent,
+	NavMeshArea_ParentHow,
+	NavMeshArea_CostSoFar,
+	NavMeshArea_TotalCost,
+	NavMeshArea_Marker,
+	NavMeshArea_OpenMarker,
+	NavMeshArea_PrevOpenIndex,
+	NavMeshArea_NextOpenIndex,
+	NavMeshArea_PathLengthSoFar,
+	
+	NavMeshArea_NearSearchMarker,
+	
+	NavMeshArea_MaxStats
+};
+
+enum
+{
+	NavMeshConnection_AreaIndex = 0,
+	NavMeshConnection_Direction,
+	NavMeshConnection_MaxStats
+};
+
+enum
+{
+	NavMeshHidingSpot_ID = 0,
+	NavMeshHidingSpot_X,
+	NavMeshHidingSpot_Y,
+	NavMeshHidingSpot_Z,
+	NavMeshHidingSpot_Flags,
+	NavMeshHidingSpot_AreaIndex,
+	NavMeshHidingSpot_MaxStats
+};
+
+enum
+{
+	NavMeshEncounterPath_FromAreaIndex = 0,
+	NavMeshEncounterPath_FromDirection,
+	NavMeshEncounterPath_ToAreaIndex,
+	NavMeshEncounterPath_ToDirection,
+	NavMeshEncounterPath_SpotsStartIndex,
+	NavMeshEncounterPath_SpotsEndIndex,
+	NavMeshEncounterPath_MaxStats
+};
+
+enum
+{
+	NavMeshEncounterSpot_HidingSpotIndex = 0,
+	NavMeshEncounterSpot_ParametricDistance,
+	NavMeshEncounterSpot_MaxStats
+};
+
+enum
+{
+	NavMeshLadderConnection_LadderIndex = 0,
+	NavMeshLadderConnection_Direction,
+	NavMeshLadderConnection_MaxStats
+};
+
+enum
+{
+	NavMeshVisibleArea_Index = 0,
+	NavMeshVisibleArea_Attributes,
+	NavMeshVisibleArea_MaxStats
+};
+
+enum
+{
+	NavMeshLadder_ID = 0,
+	NavMeshLadder_Width,
+	NavMeshLadder_Length,
+	NavMeshLadder_TopX,
+	NavMeshLadder_TopY,
+	NavMeshLadder_TopZ,
+	NavMeshLadder_BottomX,
+	NavMeshLadder_BottomY,
+	NavMeshLadder_BottomZ,
+	NavMeshLadder_Direction,
+	NavMeshLadder_TopForwardAreaIndex,
+	NavMeshLadder_TopLeftAreaIndex,
+	NavMeshLadder_TopRightAreaIndex,
+	NavMeshLadder_TopBehindAreaIndex,
+	NavMeshLadder_BottomAreaIndex,
+	NavMeshLadder_MaxStats
+};
+
+enum
+{
+	NavMeshGrid_ListStartIndex = 0,
+	NavMeshGrid_ListEndIndex,
+	NavMeshGrid_MaxStats
+};
+
+enum
+{
+	NavMeshGridList_AreaIndex = 0,
+	NavMeshGridList_Owner,
+	NavMeshGridList_MaxStats
+};
+
 ArrayList g_hNavMeshPlaces;
 ArrayList g_hNavMeshAreas;
 ArrayList g_hNavMeshAreaConnections;
@@ -69,9 +219,9 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMesh_GetSubVersion", Native_NavMeshGetSubVersion);
 	CreateNative("NavMesh_GetSaveBSPSize", Native_NavMeshGetSaveBSPSize);
 	CreateNative("NavMesh_IsAnalyzed", Native_NavMeshIsAnalyzed);
-	CreateNative("NavMesh_GetPlaces", Native_NavMeshGetPlaces);
-	CreateNative("NavMesh_GetAreas", Native_NavMeshGetAreas);
-	CreateNative("NavMesh_GetLadders", Native_NavMeshGetLadders);
+	//CreateNative("NavMesh_GetPlaces", Native_NavMeshGetPlaces);
+	//CreateNative("NavMesh_GetAreas", Native_NavMeshGetAreas);
+	//CreateNative("NavMesh_GetLadders", Native_NavMeshGetLadders);
 	
 	CreateNative("NavMesh_CollectSurroundingAreas", Native_NavMeshCollectSurroundingAreas);
 	CreateNative("NavMesh_BuildPath", Native_NavMeshBuildPath);
@@ -96,6 +246,7 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	
 	CreateNative("NavMeshArea_GetID", Native_NavMeshAreaGetID);
 	CreateNative("NavMeshArea_GetFlags", Native_NavMeshAreaGetFlags);
+	CreateNative("NavMeshArea_GetPlace", Native_NavMeshAreaGetPlace);
 	CreateNative("NavMeshArea_GetCenter", Native_NavMeshAreaGetCenter);
 	CreateNative("NavMeshArea_GetAdjacentList", Native_NavMeshAreaGetAdjacentList);
 	CreateNative("NavMeshArea_GetLadderList", Native_NavMeshAreaGetLadderList);
@@ -139,6 +290,15 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavMeshLadder_GetBottomArea", Native_NavMeshLadderGetBottomArea);
 	CreateNative("NavMeshLadder_GetTop", Native_NavMeshLadderGetTop);
 	CreateNative("NavMeshLadder_GetBottom", Native_NavMeshLadderGetBottom);
+	
+	CreateNative("NavSpotEncounter_GetFrom", Native_NavSpotEncounterGetFrom);
+	CreateNative("NavSpotEncounter_GetFromDirection", Native_NavSpotEncounterGetFromDirection);
+	CreateNative("NavSpotEncounter_GetTo", Native_NavSpotEncounterGetTo);
+	CreateNative("NavSpotEncounter_GetToDirection", Native_NavSpotEncounterGetToDirection);
+	CreateNative("NavSpotEncounter_GetSpots", Native_NavSpotEncounterGetSpots);
+	
+	CreateNative("NavSpotOrder_GetHidingSpot", Native_NavSpotOrderGetHidingSpot);
+	CreateNative("NavSpotOrder_GetParametricDistance", Native_NavSpotOrderGetParametricDistance);
 }
 
 public void OnPluginStart()
@@ -1115,7 +1275,7 @@ bool NavMeshLoad(const char[] sMapName)
 					for (int iConnectionIndex = 0; iConnectionIndex < iConnectionCount; iConnectionIndex++) 
 					{
 						iConnectionsEndIndex = iGlobalConnectionsStartIndex;
-					
+						
 						int iConnectingAreaID = 0;
 						ReadFileCell(hFile, iConnectingAreaID, UNSIGNED_INT_BYTE_SIZE);
 						
@@ -1256,7 +1416,7 @@ bool NavMeshLoad(const char[] sMapName)
 					
 					int iIndex = g_hNavMeshAreaEncounterPaths.Push(iEncounterFromID);
 					g_hNavMeshAreaEncounterPaths.Set(iIndex, iEncounterFromDirection, NavMeshEncounterPath_FromDirection);
-					g_hNavMeshAreaEncounterPaths.Set(iIndex, iEncounterToID, NavMeshEncounterPath_ToID);
+					g_hNavMeshAreaEncounterPaths.Set(iIndex, iEncounterToID, NavMeshEncounterPath_ToAreaIndex);
 					g_hNavMeshAreaEncounterPaths.Set(iIndex, iEncounterToDirection, NavMeshEncounterPath_ToDirection);
 					g_hNavMeshAreaEncounterPaths.Set(iIndex, iEncounterSpotsStartIndex, NavMeshEncounterPath_SpotsStartIndex);
 					g_hNavMeshAreaEncounterPaths.Set(iIndex, iEncounterSpotsEndIndex, NavMeshEncounterPath_SpotsEndIndex);
@@ -1490,8 +1650,8 @@ bool NavMeshLoad(const char[] sMapName)
 	{
 		for (int iIndex = 0, iSize = g_hNavMeshAreaConnections.Length; iIndex < iSize; iIndex++)
 		{
-			int iConnectedAreaID = g_hNavMeshAreaConnections.Get(iIndex, NavMeshConnection_AreaIndex);
-			g_hNavMeshAreaConnections.Set(iIndex, g_hNavMeshAreas.FindValue(iConnectedAreaID), NavMeshConnection_AreaIndex);
+			int id = g_hNavMeshAreaConnections.Get(iIndex, NavMeshConnection_AreaIndex);
+			g_hNavMeshAreaConnections.Set(iIndex, g_hNavMeshAreas.FindValue(id), NavMeshConnection_AreaIndex);
 		}
 	}
 	
@@ -1499,8 +1659,29 @@ bool NavMeshLoad(const char[] sMapName)
 	{
 		for (int iIndex = 0, iSize = g_hNavMeshAreaVisibleAreas.Length; iIndex < iSize; iIndex++)
 		{
-			int iVisibleAreaID = g_hNavMeshAreaVisibleAreas.Get(iIndex, NavMeshVisibleArea_Index);
-			g_hNavMeshAreaVisibleAreas.Set(iIndex, g_hNavMeshAreas.FindValue(iVisibleAreaID), NavMeshVisibleArea_Index);
+			int id = g_hNavMeshAreaVisibleAreas.Get(iIndex, NavMeshVisibleArea_Index);
+			g_hNavMeshAreaVisibleAreas.Set(iIndex, g_hNavMeshAreas.FindValue(id), NavMeshVisibleArea_Index);
+		}
+	}
+	
+	if (g_hNavMeshAreaEncounterPaths.Length > 0)
+	{
+		for (int iIndex = 0, iSize = g_hNavMeshAreaEncounterPaths.Length; iIndex < iSize; iIndex++)
+		{
+			int id = g_hNavMeshAreaEncounterPaths.Get(iIndex, NavMeshEncounterPath_FromAreaIndex);
+			g_hNavMeshAreaEncounterPaths.Set(iIndex, g_hNavMeshAreas.FindValue(id), NavMeshEncounterPath_FromAreaIndex);
+			
+			id = g_hNavMeshAreaEncounterPaths.Get(iIndex, NavMeshEncounterPath_ToAreaIndex);
+			g_hNavMeshAreaEncounterPaths.Set(iIndex, g_hNavMeshAreas.FindValue(id), NavMeshEncounterPath_ToAreaIndex);
+		}
+	}
+	
+	if (g_hNavMeshAreaEncounterSpots.Length > 0)
+	{
+		for (int iIndex = 0, iSize = g_hNavMeshAreaEncounterPaths.Length; iIndex < iSize; iIndex++)
+		{
+			int id = g_hNavMeshAreaEncounterSpots.Get(iIndex, NavMeshEncounterSpot_HidingSpotIndex);
+			g_hNavMeshAreaEncounterSpots.Set(iIndex, g_hNavMeshAreaHidingSpots.FindValue(id), NavMeshEncounterSpot_HidingSpotIndex);
 		}
 	}
 	
@@ -1508,8 +1689,8 @@ bool NavMeshLoad(const char[] sMapName)
 	{
 		for (int iIndex = 0, iSize = g_hNavMeshAreaLadderConnections.Length; iIndex < iSize; iIndex++)
 		{
-			int iLadderID = g_hNavMeshAreaLadderConnections.Get(iIndex, NavMeshLadderConnection_LadderIndex);
-			g_hNavMeshAreaLadderConnections.Set(iIndex, g_hNavMeshLadders.FindValue(iLadderID), NavMeshLadderConnection_LadderIndex);
+			int id = g_hNavMeshAreaLadderConnections.Get(iIndex, NavMeshLadderConnection_LadderIndex);
+			g_hNavMeshAreaLadderConnections.Set(iIndex, g_hNavMeshLadders.FindValue(id), NavMeshLadderConnection_LadderIndex);
 		}
 	}
 	
@@ -1999,6 +2180,19 @@ stock int NavMeshAreaGetFlags(int iAreaIndex)
 	return g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_Flags);
 }
 
+stock void NavMeshAreaGetPlace(int iAreaIndex, char[] buffer, int maxlen)
+{
+	int placeIndex = g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_PlaceID);
+
+	if (placeIndex < 0 || placeIndex >= g_hNavMeshPlaces.Length)
+	{
+		strcopy(buffer, maxlen, "");
+		return;
+	}
+	
+	g_hNavMeshPlaces.GetString(placeIndex, buffer, maxlen);
+}
+
 stock bool NavMeshAreaGetCenter(int iAreaIndex, float flBuffer[3])
 {
 	if (!g_bNavMeshBuilt) return false;
@@ -2021,13 +2215,13 @@ stock void NavMeshAreaGetCorner(int iAreaIndex, NavCornerType corner, float buff
 		{
 			buffer[0] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_X2);
 			buffer[1] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_Y1);
-			buffer[2] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_NECornerZ);
+			buffer[2] = NavMeshAreaGetNECornerZ(iAreaIndex);
 		}
 		case NAV_CORNER_SOUTH_WEST:
 		{
 			buffer[0] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_X1);
 			buffer[1] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_Y2);
-			buffer[2] = view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_SWCornerZ);
+			buffer[2] = NavMeshAreaGetSWCornerZ(iAreaIndex);
 		}
 		case NAV_CORNER_SOUTH_EAST:
 		{
@@ -2214,14 +2408,12 @@ stock bool NavMeshAreaIsOverlappingArea(int iAreaIndex, int iTargetAreaIndex)
 stock float NavMeshAreaGetNECornerZ(int iAreaIndex)
 {
 	if (!g_bNavMeshBuilt) return 0.0;
-	
 	return view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_NECornerZ);
 }
 
 stock float NavMeshAreaGetSWCornerZ(int iAreaIndex)
 {
 	if (!g_bNavMeshBuilt) return 0.0;
-	
 	return view_as<float>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_SWCornerZ);
 }
 
@@ -2735,6 +2927,51 @@ stock bool NavMeshGetGroundHeight(const float flPos[3], float &flHeight, float f
 	return false;
 }
 
+stock int NavSpotEncounterGetFrom(int spotEncounterIndex)
+{
+	return g_hNavMeshAreaEncounterPaths.Get(spotEncounterIndex, NavMeshEncounterPath_FromAreaIndex);
+}
+
+stock int NavSpotEncounterGetFromDirection(int spotEncounterIndex)
+{
+	return g_hNavMeshAreaEncounterPaths.Get(spotEncounterIndex, NavMeshEncounterPath_FromDirection);
+}
+
+stock int NavSpotEncounterGetTo(int spotEncounterIndex)
+{
+	return g_hNavMeshAreaEncounterPaths.Get(spotEncounterIndex, NavMeshEncounterPath_ToAreaIndex);
+}
+
+stock int NavSpotEncounterGetToDirection(int spotEncounterIndex)
+{
+	return g_hNavMeshAreaEncounterPaths.Get(spotEncounterIndex, NavMeshEncounterPath_ToDirection);
+}
+
+stock ArrayStack NavSpotEncounterGetSpots(int spotEncounterIndex)
+{
+	int startIndex = g_hNavMeshAreaEncounterPaths.Get(spotEncounterIndex, NavMeshEncounterPath_SpotsStartIndex);
+	if (startIndex == -1) return null;
+	
+	ArrayStack buffer = new ArrayStack();
+	int endIndex = g_hNavMeshAreaEncounterPaths.Get(spotEncounterIndex, NavMeshEncounterPath_SpotsEndIndex);
+	for (int i = startIndex; i <= endIndex; i++)
+	{
+		buffer.Push(i);
+	}
+	
+	return buffer;
+}
+
+stock int NavSpotOrderGetHidingSpot(int spotOrderIndex)
+{
+	return g_hNavMeshAreaEncounterSpots.Get(spotOrderIndex, NavMeshEncounterSpot_HidingSpotIndex);
+}
+
+stock int NavSpotOrderGetParametricDistance(int spotOrderIndex)
+{
+	return g_hNavMeshAreaEncounterSpots.Get(spotOrderIndex, NavMeshEncounterSpot_ParametricDistance);
+}
+
 //	==================================
 //	API
 //	==================================
@@ -2976,6 +3213,15 @@ public int Native_NavMeshAreaGetID(Handle plugin, int numParams)
 public int Native_NavMeshAreaGetFlags(Handle plugin, int numParams)
 {
 	return NavMeshAreaGetFlags(GetNativeCell(1));
+}
+
+public int Native_NavMeshAreaGetPlace(Handle plugin, int numParams)
+{
+	int maxlen = GetNativeCell(3);
+	char[] buffer = new char[maxlen];
+	GetNativeString(2, buffer, maxlen);
+	NavMeshAreaGetPlace(GetNativeCell(1), buffer, maxlen);
+	SetNativeString(2, buffer, maxlen);
 }
 
 public int Native_NavMeshAreaGetCenter(Handle plugin, int numParams)
@@ -3304,3 +3550,50 @@ public int Native_NavMeshLadderGetBottom(Handle plugin, int numParams)
 	
 	SetNativeArray(2, buffer, 3);
 }
+
+public int Native_NavSpotEncounterGetFrom(Handle plugin, int numParams)
+{
+	return NavSpotEncounterGetFrom(GetNativeCell(1));
+}
+
+public int Native_NavSpotEncounterGetFromDirection(Handle plugin, int numParams)
+{
+	return NavSpotEncounterGetFromDirection(GetNativeCell(1));
+}
+
+public int Native_NavSpotEncounterGetTo(Handle plugin, int numParams)
+{
+	return NavSpotEncounterGetTo(GetNativeCell(1));
+}
+
+public int Native_NavSpotEncounterGetToDirection(Handle plugin, int numParams)
+{
+	return NavSpotEncounterGetToDirection(GetNativeCell(1));
+}
+
+public int Native_NavSpotEncounterGetSpots(Handle plugin, int numParams)
+{
+	ArrayStack buffer = view_as<ArrayStack>GetNativeCell(2);
+	ArrayStack dummy = NavSpotEncounterGetSpots(GetNativeCell(1));
+	if (dummy != null)
+	{
+		while (!dummy.Empty)
+		{
+			int val;
+			PopStackCell(dummy, val);
+			buffer.Push(val);
+		}
+		delete dummy;
+	}
+}
+
+public int Native_NavSpotOrderGetHidingSpot(Handle plugin, int numParams)
+{
+	return NavSpotOrderGetHidingSpot(GetNativeCell(1));
+}
+
+public int Native_NavSpotOrderGetParametricDistance(Handle plugin, int numParams)
+{
+	return NavSpotOrderGetParametricDistance(GetNativeCell(1));
+}
+

@@ -4,10 +4,16 @@
 #define _navmesh_included
 
 #define HalfHumanHeight 35.5
-
 #define StepHeight 18.0
 
 #define NAV_MAGIC_NUMBER 0xFEEDFACE
+
+#define WALK_THRU_PROP_DOORS		0x01
+#define WALK_THRU_FUNC_DOORS		0x02
+#define WALK_THRU_DOORS 			(WALK_THRU_PROP_DOORS | WALK_THRU_FUNC_DOORS)
+#define WALK_THRU_BREAKABLES		0x04
+#define WALK_THRU_TOGGLE_BRUSHES	0x08
+#define WALK_THRU_EVERYTHING		(WALK_THRU_DOORS | WALK_THRU_BREAKABLES | WALK_THRU_TOGGLE_BRUSHES)
 
 enum 
 {
@@ -16,15 +22,6 @@ enum
 	NAV_DIR_SOUTH,
 	NAV_DIR_WEST,
 	NAV_DIR_COUNT
-};
-
-enum NavCornerType
-{
-	NAV_CORNER_NORTH_WEST = 0,
-	NAV_CORNER_NORTH_EAST,
-	NAV_CORNER_SOUTH_EAST,
-	NAV_CORNER_SOUTH_WEST,
-	NAV_CORNER_COUNT
 };
 
 enum
@@ -62,154 +59,13 @@ enum
 	NUM_TRAVERSE_TYPES
 };
 
-enum
+enum NavCornerType
 {
-	NavMeshArea_ID = 0,
-	NavMeshArea_Flags,
-	NavMeshArea_PlaceID,
-	NavMeshArea_X1,
-	NavMeshArea_Y1,
-	NavMeshArea_Z1,
-	NavMeshArea_X2,
-	NavMeshArea_Y2,
-	NavMeshArea_Z2,
-	NavMeshArea_CenterX,
-	NavMeshArea_CenterY,
-	NavMeshArea_CenterZ,
-	NavMeshArea_InvDxCorners,
-	NavMeshArea_InvDyCorners,
-	NavMeshArea_NECornerZ,
-	NavMeshArea_SWCornerZ,
-	
-//	NavMeshArea_Connections,
-	NavMeshArea_ConnectionsStartIndex,
-	NavMeshArea_ConnectionsEndIndex,
-	
-//	NavMeshArea_HidingSpots,
-	NavMeshArea_HidingSpotsStartIndex,
-	NavMeshArea_HidingSpotsEndIndex,
-	
-//	NavMeshArea_EncounterPaths,
-	NavMeshArea_EncounterPathsStartIndex,
-	NavMeshArea_EncounterPathsEndIndex,
-	
-//	NavMeshArea_LadderConnections,
-	NavMeshArea_LadderConnectionsStartIndex,
-	NavMeshArea_LadderConnectionsEndIndex,
-	
-	NavMeshArea_CornerLightIntensityNW,
-	NavMeshArea_CornerLightIntensityNE,
-	NavMeshArea_CornerLightIntensitySE,
-	NavMeshArea_CornerLightIntensitySW,
-	
-//	NavMeshArea_VisibleAreas,
-	NavMeshArea_VisibleAreasStartIndex,
-	NavMeshArea_VisibleAreasEndIndex,
-	
-	NavMeshArea_InheritVisibilityFrom,
-	NavMeshArea_EarliestOccupyTimeFirstTeam,
-	NavMeshArea_EarliestOccupyTimeSecondTeam,
-	NavMeshArea_unk01,
-	NavMeshArea_Blocked,
-	
-// 	A* pathfinding
-	NavMeshArea_Parent,
-	NavMeshArea_ParentHow,
-	NavMeshArea_CostSoFar,
-	NavMeshArea_TotalCost,
-	NavMeshArea_Marker,
-	NavMeshArea_OpenMarker,
-	NavMeshArea_PrevOpenIndex,
-	NavMeshArea_NextOpenIndex,
-	NavMeshArea_PathLengthSoFar,
-	
-	NavMeshArea_NearSearchMarker,
-	
-	NavMeshArea_MaxStats
-};
-
-enum
-{
-	NavMeshConnection_AreaIndex = 0,
-	NavMeshConnection_Direction,
-	NavMeshConnection_MaxStats
-};
-
-enum
-{
-	NavMeshHidingSpot_ID = 0,
-	NavMeshHidingSpot_X,
-	NavMeshHidingSpot_Y,
-	NavMeshHidingSpot_Z,
-	NavMeshHidingSpot_Flags,
-	NavMeshHidingSpot_AreaIndex,
-	NavMeshHidingSpot_MaxStats
-};
-
-enum
-{
-	NavMeshEncounterPath_FromID = 0,
-	NavMeshEncounterPath_FromDirection,
-	NavMeshEncounterPath_ToID,
-	NavMeshEncounterPath_ToDirection,
-	NavMeshEncounterPath_SpotsStartIndex,
-	NavMeshEncounterPath_SpotsEndIndex,
-	NavMeshEncounterPath_MaxStats
-};
-
-enum
-{
-	NavMeshEncounterSpot_OrderID = 0,
-	NavMeshEncounterSpot_ParametricDistance,
-	NavMeshEncounterSpot_MaxStats
-};
-
-enum
-{
-	NavMeshLadderConnection_LadderIndex = 0,
-	NavMeshLadderConnection_Direction,
-	NavMeshLadderConnection_MaxStats
-};
-
-enum
-{
-	NavMeshVisibleArea_Index = 0,
-	NavMeshVisibleArea_Attributes,
-	NavMeshVisibleArea_MaxStats
-};
-
-enum
-{
-	NavMeshLadder_ID = 0,
-	NavMeshLadder_Width,
-	NavMeshLadder_Length,
-	NavMeshLadder_TopX,
-	NavMeshLadder_TopY,
-	NavMeshLadder_TopZ,
-	NavMeshLadder_BottomX,
-	NavMeshLadder_BottomY,
-	NavMeshLadder_BottomZ,
-	NavMeshLadder_Direction,
-	NavMeshLadder_TopForwardAreaIndex,
-	NavMeshLadder_TopLeftAreaIndex,
-	NavMeshLadder_TopRightAreaIndex,
-	NavMeshLadder_TopBehindAreaIndex,
-	NavMeshLadder_BottomAreaIndex,
-	NavMeshLadder_MaxStats
-};
-
-enum
-{
-	NavMeshGrid_ListStartIndex = 0,
-	NavMeshGrid_ListEndIndex,
-	NavMeshGrid_MaxStats
-};
-
-enum
-{
-	NavMeshGridList_AreaIndex = 0,
-	NavMeshGridList_Owner,
-	NavMeshGridList_MaxStats
+	NAV_CORNER_NORTH_WEST = 0,
+	NAV_CORNER_NORTH_EAST,
+	NAV_CORNER_SOUTH_EAST,
+	NAV_CORNER_SOUTH_WEST,
+	NAV_CORNER_COUNT
 };
 
 const CNavArea INVALID_NAV_AREA = view_as<CNavArea>-1;
@@ -217,6 +73,7 @@ const CNavLadder INVALID_NAV_LADDER = view_as<CNavLadder>-1;
 const HidingSpot INVALID_NAV_HIDING_SPOT = view_as<HidingSpot>-1;
 
 typedef NavPathCostFunctor = function int(CNavArea area, CNavArea from, CNavLadder ladder, any data);
+
 
 // NavMesh
 
@@ -231,12 +88,6 @@ native int NavMesh_GetSubVersion();
 native int NavMesh_GetSaveBSPSize();
 
 native bool NavMesh_IsAnalyzed();
-
-native ArrayList NavMesh_GetPlaces();
-
-native ArrayList NavMesh_GetAreas();
-
-native ArrayList NavMesh_GetLadders();
 
 native int NavMesh_WorldToGridX(float wx);
 
@@ -270,6 +121,8 @@ native HidingSpot NavMesh_GetRandomHidingSpot();
 native int NavMeshArea_GetID(int areaIndex);
 
 native int NavMeshArea_GetFlags(int areaIndex);
+
+native void NavMeshArea_GetPlace(int areaIndex, char[] buffer, int maxlen);
 
 native bool NavMeshArea_GetCenter(int areaIndex, float buffer[3]);
 
@@ -379,6 +232,11 @@ methodmap CNavArea
 	property float SWCornerZ
 	{
 		public get() { return NavMeshArea_GetSWCornerZ(this.Index); }
+	}
+	
+	public void GetPlace( char[] buffer, int maxlen )
+	{
+		NavMeshArea_GetPlace(this.Index, buffer, maxlen);
 	}
 	
 	public bool GetCenter( float buffer[3] )
@@ -522,6 +380,7 @@ methodmap CNavArea
 	}
 }
 
+
 // HidingSpot
 
 enum
@@ -592,6 +451,7 @@ methodmap HidingSpot
 		return NavHidingSpot_GetArea(this.Index);
 	}
 }
+
 
 // CNavLadder
 
@@ -672,6 +532,87 @@ methodmap CNavLadder
 }
 
 
+// SpotEncounter
+
+native CNavArea NavSpotEncounter_GetFrom(int spotEncounterIndex);
+
+native int NavSpotEncounter_GetFromDirection(int spotEncounterIndex);
+
+native CNavArea NavSpotEncounter_GetTo(int spotEncounterIndex);
+
+native int NavSpotEncounter_GetToDirection(int spotEncounterIndex);
+
+native void NavSpotEncounter_GetSpots(int spotEncounterIndex, ArrayStack buffer);
+
+methodmap SpotEncounter
+{
+	public SpotEncounter( int index )
+	{
+		return view_as<SpotEncounter>index;
+	}
+	
+	property int Index
+	{
+		public get() { return view_as<int>this; }
+	}
+	
+	property CNavArea From
+	{
+		public get() { return NavSpotEncounter_GetFrom(this.Index); }
+	}
+	
+	property int FromDirection
+	{
+		public get() { return NavSpotEncounter_GetFromDirection(this.Index); }
+	}
+	
+	property CNavArea To
+	{
+		public get() { return NavSpotEncounter_GetTo(this.Index); }
+	}
+	
+	property int ToDirection
+	{
+		public get() { return NavSpotEncounter_GetToDirection(this.Index); }
+	}
+	
+	public void GetSpots( ArrayStack buffer )
+	{
+		NavSpotEncounter_GetSpots(this.Index, buffer);
+	}
+}
+
+
+// SpotOrder
+
+native HidingSpot NavSpotOrder_GetHidingSpot(int spotOrderIndex);
+
+native int NavSpotOrder_GetParametricDistance(int spotOrderIndex);
+
+methodmap SpotOrder
+{
+	public SpotOrder( int index )
+	{
+		return view_as<SpotOrder>index;
+	}
+	
+	property int Index
+	{
+		public get() { return view_as<int>this; }
+	}
+	
+	property HidingSpot HidingSpot
+	{
+		public get() { return NavSpotOrder_GetHidingSpot(this.Index); }
+	}
+	
+	property int ParametricDistance
+	{
+		public get() { return NavSpotOrder_GetParametricDistance(this.Index); }
+	}
+}
+
+
 // Shortest-path cost function for NavMesh_BuildPath.
 public int NavMeshShortestPathCost(CNavArea area, CNavArea from, CNavLadder ladder, any data)
 {
@@ -703,13 +644,7 @@ public int NavMeshShortestPathCost(CNavArea area, CNavArea from, CNavLadder ladd
 	}
 }
 
-#define WALK_THRU_PROP_DOORS		0x01
-#define WALK_THRU_FUNC_DOORS		0x02
-#define WALK_THRU_DOORS 			(WALK_THRU_PROP_DOORS | WALK_THRU_FUNC_DOORS)
-#define WALK_THRU_BREAKABLES		0x04
-#define WALK_THRU_TOGGLE_BRUSHES	0x08
-#define WALK_THRU_EVERYTHING		(WALK_THRU_DOORS | WALK_THRU_BREAKABLES | WALK_THRU_TOGGLE_BRUSHES)
-
+// stocks
 
 stock bool IsEntityWalkable(int iEnt, int iFlags)
 {
