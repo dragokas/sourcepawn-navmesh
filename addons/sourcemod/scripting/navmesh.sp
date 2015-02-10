@@ -131,6 +131,14 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("NavHidingSpot_GetArea", Native_NavHidingSpotGetArea);
 	
 	CreateNative("NavMeshLadder_GetLength", Native_NavMeshLadderGetLength);
+	CreateNative("NavMeshLadder_GetWidth", Native_NavMeshLadderGetWidth);
+	CreateNative("NavMeshLadder_GetTopForwardArea", Native_NavMeshLadderGetTopForwardArea);
+	CreateNative("NavMeshLadder_GetTopLeftArea", Native_NavMeshLadderGetTopLeftArea);
+	CreateNative("NavMeshLadder_GetTopRightArea", Native_NavMeshLadderGetTopRightArea);
+	CreateNative("NavMeshLadder_GetTopBehindArea", Native_NavMeshLadderGetTopBehindArea);
+	CreateNative("NavMeshLadder_GetBottomArea", Native_NavMeshLadderGetBottomArea);
+	CreateNative("NavMeshLadder_GetTop", Native_NavMeshLadderGetTop);
+	CreateNative("NavMeshLadder_GetBottom", Native_NavMeshLadderGetBottom);
 }
 
 public void OnPluginStart()
@@ -381,7 +389,7 @@ bool NavMeshBuildPath(int iStartAreaIndex,
 	// Perform A* search.
 	while (!NavMeshAreaIsOpenListEmpty())
 	{
-		new iAreaIndex = NavMeshAreaPopOpenList();
+		int iAreaIndex = NavMeshAreaPopOpenList();
 		
 		if (view_as<bool>g_hNavMeshAreas.Get(iAreaIndex, NavMeshArea_Blocked))
 		{
@@ -2624,6 +2632,13 @@ stock bool NavMeshAreaIsEdge(int iAreaIndex, int iNavDirection)
 	return false;
 }
 
+stock float NavMeshLadderGetWidth(int iLadderIndex)
+{
+	if (!g_bNavMeshBuilt) return 0.0;
+	
+	return view_as<float>g_hNavMeshLadders.Get(iLadderIndex, NavMeshLadder_Width);
+}
+
 stock float NavMeshLadderGetLength(int iLadderIndex)
 {
 	if (!g_bNavMeshBuilt) return 0.0;
@@ -3231,7 +3246,61 @@ public int Native_NavHidingSpotGetArea(Handle plugin, int numParams)
 	return g_hNavMeshAreaHidingSpots.Get(GetNativeCell(1), NavMeshHidingSpot_AreaIndex);
 }
 
+public int Native_NavMeshLadderGetWidth(Handle plugin, int numParams)
+{
+	return view_as<int>NavMeshLadderGetWidth(GetNativeCell(1));
+}
+
 public int Native_NavMeshLadderGetLength(Handle plugin, int numParams)
 {
 	return view_as<int>NavMeshLadderGetLength(GetNativeCell(1));
+}
+
+public int Native_NavMeshLadderGetTopForwardArea(Handle plugin, int numParams)
+{
+	return g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_TopForwardAreaIndex);
+}
+
+public int Native_NavMeshLadderGetTopLeftArea(Handle plugin, int numParams)
+{
+	return g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_TopLeftAreaIndex);
+}
+
+public int Native_NavMeshLadderGetTopRightArea(Handle plugin, int numParams)
+{
+	return g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_TopRightAreaIndex);
+}
+
+public int Native_NavMeshLadderGetTopBehindArea(Handle plugin, int numParams)
+{
+	return g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_TopBehindAreaIndex);
+}
+
+public int Native_NavMeshLadderGetBottomArea(Handle plugin, int numParams)
+{
+	return g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_BottomAreaIndex);
+}
+
+public int Native_NavMeshLadderGetTop(Handle plugin, int numParams)
+{
+	float buffer[3];
+	GetNativeArray(2, buffer, 3);
+	
+	buffer[0] = view_as<float>g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_TopX);
+	buffer[1] = view_as<float>g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_TopY);
+	buffer[2] = view_as<float>g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_TopZ);
+	
+	SetNativeArray(2, buffer, 3);
+}
+
+public int Native_NavMeshLadderGetBottom(Handle plugin, int numParams)
+{
+	float buffer[3];
+	GetNativeArray(2, buffer, 3);
+	
+	buffer[0] = view_as<float>g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_BottomX);
+	buffer[1] = view_as<float>g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_BottomY);
+	buffer[2] = view_as<float>g_hNavMeshLadders.Get(GetNativeCell(1), NavMeshLadder_BottomZ);
+	
+	SetNativeArray(2, buffer, 3);
 }

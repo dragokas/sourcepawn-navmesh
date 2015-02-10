@@ -213,9 +213,10 @@ enum
 };
 
 const CNavArea INVALID_NAV_AREA = view_as<CNavArea>-1;
+const CNavLadder INVALID_NAV_LADDER = view_as<CNavLadder>-1;
 const HidingSpot INVALID_NAV_HIDING_SPOT = view_as<HidingSpot>-1;
 
-typedef NavPathCostFunctor = function int(CNavArea area, CNavArea from, int ladderIndex, any data);
+typedef NavPathCostFunctor = function int(CNavArea area, CNavArea from, CNavLadder ladder, any data);
 
 // NavMesh
 
@@ -332,7 +333,7 @@ methodmap CNavArea
 	{
 		return view_as<CNavArea>index;
 	}
-
+	
 	property int Index
 	{
 		public get() { return view_as<int>this; }
@@ -594,11 +595,85 @@ methodmap HidingSpot
 
 // CNavLadder
 
-native float NavMeshLadder_GetLength(int iLadderID);
+native float NavMeshLadder_GetLength(int ladderIndex);
+
+native float NavMeshLadder_GetWidth(int ladderIndex);
+
+native CNavArea NavMeshLadder_GetTopForwardArea(int ladderIndex);
+
+native CNavArea NavMeshLadder_GetTopLeftArea(int ladderIndex);
+
+native CNavArea NavMeshLadder_GetTopRightArea(int ladderIndex);
+
+native CNavArea NavMeshLadder_GetTopBehindArea(int ladderIndex);
+
+native CNavArea NavMeshLadder_GetBottomArea(int ladderIndex);
+
+native void NavMeshLadder_GetTop(int ladderIndex, float buffer[3]);
+
+native void NavMeshLadder_GetBottom(int ladderIndex, float buffer[3]);
+
+methodmap CNavLadder
+{
+	public CNavLadder( int index )
+	{
+		return view_as<CNavLadder>index;
+	}
+	
+	property int Index
+	{
+		public get() { return view_as<int>this; }
+	}
+	
+	property float Length
+	{
+		public get() { return NavMeshLadder_GetLength(this.Index); }
+	}
+	
+	property float Width
+	{
+		public get() { return NavMeshLadder_GetWidth(this.Index); }
+	}
+	
+	property CNavArea TopForwardArea
+	{
+		public get() { return NavMeshLadder_GetTopForwardArea(this.Index); }
+	}
+	
+	property CNavArea TopLeftArea
+	{
+		public get() { return NavMeshLadder_GetTopLeftArea(this.Index); }
+	}
+	
+	property CNavArea TopRightArea
+	{
+		public get() { return NavMeshLadder_GetTopRightArea(this.Index); }
+	}
+	
+	property CNavArea TopBehindArea
+	{
+		public get() { return NavMeshLadder_GetTopBehindArea(this.Index); }
+	}
+	
+	property CNavArea BottomArea
+	{
+		public get() { return NavMeshLadder_GetBottomArea(this.Index); }
+	}
+	
+	public void GetTop( float buffer[3] )
+	{
+		NavMeshLadder_GetTop(this.Index, buffer);
+	}
+	
+	public void GetBottom( float buffer[3] )
+	{
+		NavMeshLadder_GetBottom(this.Index, buffer);
+	}
+}
 
 
 // Shortest-path cost function for NavMesh_BuildPath.
-public int NavMeshShortestPathCost(CNavArea area, CNavArea from, int ladderIndex, any data)
+public int NavMeshShortestPathCost(CNavArea area, CNavArea from, CNavLadder ladder, any data)
 {
 	if (from == INVALID_NAV_AREA)
 	{
@@ -607,9 +682,9 @@ public int NavMeshShortestPathCost(CNavArea area, CNavArea from, int ladderIndex
 	else
 	{
 		int iDist = 0;
-		if (ladderIndex != -1)
+		if (ladder != INVALID_NAV_LADDER)
 		{
-			iDist = RoundFloat(NavMeshLadder_GetLength(ladderIndex));
+			iDist = RoundFloat(ladder.Length);
 		}
 		else
 		{
