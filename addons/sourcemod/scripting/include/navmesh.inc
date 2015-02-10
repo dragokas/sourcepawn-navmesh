@@ -89,20 +89,6 @@ native int NavMesh_GetSaveBSPSize();
 
 native bool NavMesh_IsAnalyzed();
 
-native int NavMesh_WorldToGridX(float wx);
-
-native int NavMesh_WorldToGridY(float wy);
-
-native void NavMesh_GetAreasOnGrid(ArrayStack hStack, int x, int y);
-
-native int NavMesh_GetGridSizeX();
-
-native int NavMesh_GetGridSizeY();
-
-native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, CNavArea startArea, float travelDistLimit=1500.0, float maxStepUpLimit=StepHeight, float maxDropDownLimit=100.0);
-
-native bool NavMesh_BuildPath(CNavArea startArea, CNavArea goalArea, const float goalPos[3], NavPathCostFunctor costFunctor, any costData=0, CNavArea &closestArea=INVALID_NAV_AREA, float maxPathLength=0.0);
-
 native bool NavMesh_GetGroundHeight(const float pos[3], float &height=-1.0, float normal[3]=NULL_VECTOR);
 
 native CNavArea NavMesh_FindAreaByID( int areaID );
@@ -114,6 +100,23 @@ native CNavArea NavMesh_GetNearestArea(const float pos[3], bool anyZ=false, floa
 native HidingSpot NavMesh_FindHidingSpotByID(int hidingSpotID);
 
 native HidingSpot NavMesh_GetRandomHidingSpot();
+
+// These grid functions are more internal than anything.
+native int NavMesh_WorldToGridX(float wx);
+
+native int NavMesh_WorldToGridY(float wy);
+
+native void NavMesh_GetAreasOnGrid(ArrayStack hStack, int x, int y);
+
+native int NavMesh_GetGridSizeX();
+
+native int NavMesh_GetGridSizeY();
+
+
+native void NavMesh_CollectSurroundingAreas(ArrayStack hStack, CNavArea startArea, float travelDistLimit=1500.0, float maxStepUpLimit=StepHeight, float maxDropDownLimit=100.0);
+
+native bool NavMesh_BuildPath(CNavArea startArea, CNavArea goalArea, const float goalPos[3], NavPathCostFunctor costFunctor, any costData=0, CNavArea &closestArea=INVALID_NAV_AREA, float maxPathLength=0.0);
+
 
 
 // CNavArea
